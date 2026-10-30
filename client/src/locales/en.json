@@ -1,0 +1,374 @@
+{
+  "app": {
+    "name": "FarmFair",
+    "tagline": "Know the real price. Sell at a fair price.",
+    "skipToContent": "Skip to main content"
+  },
+  "nav": {
+    "home": "Home",
+    "howItWorks": "How it works",
+    "features": "Features",
+    "prices": "Mandi prices",
+    "browse": "Browse crops",
+    "dashboard": "Dashboard",
+    "myListings": "My listings",
+    "myOffers": "My offers",
+    "orders": "Orders",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "admin": "Admin",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "toggleSidebar": "Toggle sidebar"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "edit": "Edit",
+    "delete": "Delete",
+    "retry": "Try again",
+    "search": "Search",
+    "required": "Required",
+    "optional": "Optional",
+    "yes": "Yes",
+    "no": "No",
+    "comingSoon": "Coming in next phases",
+    "selectPlaceholder": "Select…",
+    "noResults": "No results",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "step": "Step {{current}} of {{total}}",
+    "perKg": "per kg",
+    "kg": "kg"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language",
+    "change": "Change language",
+    "en": "English",
+    "ta": "தமிழ்"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Built for Tamil Nadu",
+      "title": "Know the real price. Sell at a fair price.",
+      "subtitle": "FarmFair shows you today's mandi rates for your crops, lets buyers bid openly, and holds the money safely until your crop is picked up.",
+      "ctaFarmer": "I am a farmer",
+      "ctaBuyer": "I am a buyer",
+      "ctaPrices": "See today's prices",
+      "trust": "Free to join · No commission from farmers · Works on WhatsApp"
+    },
+    "problem": {
+      "title": "Why farmers lose money",
+      "subtitle": "The crop is good. The price is not.",
+      "items": {
+        "price": {
+          "title": "No idea what the real rate is",
+          "body": "By the time you reach the mandi, you have already accepted whatever the trader says. Official rates are published daily, but almost nobody sees them."
+        },
+        "middlemen": {
+          "title": "Too many hands in between",
+          "body": "Every extra agent takes a cut. The farmer carries the risk and keeps the smallest share."
+        },
+        "trust": {
+          "title": "Payment after \"next week\"",
+          "body": "Crop is collected on a promise. Following up on payment costs time you do not have."
+        },
+        "reach": {
+          "title": "Only the buyers you already know",
+          "body": "A better price may exist two districts away, and there is no way to find it."
+        }
+      }
+    },
+    "how": {
+      "title": "How FarmFair works",
+      "subtitle": "Four steps, start to finish.",
+      "steps": {
+        "one": {
+          "title": "Check the real price",
+          "body": "See today's government mandi rates for your crop, in your district, in Tamil or English."
+        },
+        "two": {
+          "title": "List your crop",
+          "body": "Quantity, grade, when it is ready, and the price you want. Add a photo from your phone."
+        },
+        "three": {
+          "title": "Compare offers",
+          "body": "Verified buyers bid. Every offer is labelled against the market rate, so you can see what is fair."
+        },
+        "four": {
+          "title": "Get paid safely",
+          "body": "The buyer pays into escrow before pickup. The money is released to you once the weight is confirmed."
+        }
+      }
+    },
+    "features": {
+      "title": "Everything in one place",
+      "items": {
+        "prices": {
+          "title": "Daily mandi prices",
+          "body": "Official rates from data.gov.in across Tamil Nadu markets, updated every morning."
+        },
+        "fairness": {
+          "title": "Fair price checker",
+          "body": "Type any price and see instantly how it compares with today's market average."
+        },
+        "escrow": {
+          "title": "Escrow payments",
+          "body": "Money is held safely until pickup is confirmed by both sides."
+        },
+        "whatsapp": {
+          "title": "Works on WhatsApp",
+          "body": "Check prices, list a crop and accept an offer by sending a simple message."
+        },
+        "tamil": {
+          "title": "Full Tamil support",
+          "body": "Every screen, message and alert in Tamil or English, your choice."
+        },
+        "ratings": {
+          "title": "Ratings both ways",
+          "body": "Farmers rate buyers and buyers rate farmers, so reliable people are easy to find."
+        }
+      }
+    },
+    "cta": {
+      "title": "Start with today's price",
+      "subtitle": "Signing up takes two minutes and costs nothing.",
+      "button": "Create a free account",
+      "secondary": "Log in"
+    },
+    "footer": {
+      "tagline": "Fair prices and safe payments for Tamil Nadu farmers.",
+      "product": "Product",
+      "support": "Support",
+      "legal": "Legal",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "contact": "Contact",
+      "help": "Help",
+      "rights": "All rights reserved.",
+      "builtFor": "Made for Tamil Nadu farmers."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Log in with your mobile number.",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "noAccount": "New to FarmFair?",
+      "registerLink": "Create an account",
+      "forgot": "Forgot your password?",
+      "forgotHint": "Contact support to reset your password."
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "It takes about two minutes.",
+      "steps": {
+        "role": "Your role",
+        "details": "Your details",
+        "location": "Location and crops",
+        "business": "Business details",
+        "review": "Review"
+      },
+      "role": {
+        "title": "How will you use FarmFair?",
+        "farmer": {
+          "title": "I am a farmer",
+          "body": "List your crop, compare offers from verified buyers, and get paid safely."
+        },
+        "buyer": {
+          "title": "I am a buyer",
+          "body": "Browse crops across Tamil Nadu, make offers, and pay through escrow."
+        },
+        "buyerNote": "Buyer accounts are checked by our team before you can make offers. You can browse straight away."
+      },
+      "details": {
+        "title": "Your details",
+        "subtitle": "We use your mobile number to log you in and send alerts."
+      },
+      "location": {
+        "title": "Where are you?",
+        "subtitleFarmer": "This decides which mandi prices you see.",
+        "subtitleBuyer": "We will show you crops near you first.",
+        "cropsLabelFarmer": "Which crops do you grow?",
+        "cropsLabelBuyer": "Which crops do you buy?",
+        "cropsHint": "Tap to select. You can change this later.",
+        "cropsSelected": "{{count}} selected"
+      },
+      "business": {
+        "title": "About your business",
+        "subtitle": "This helps farmers trust your offers."
+      },
+      "review": {
+        "title": "Check your details",
+        "subtitle": "Make sure everything is right before you submit.",
+        "edit": "Change"
+      },
+      "submit": "Create account",
+      "submitting": "Creating your account…",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "success": "Welcome to FarmFair!"
+    },
+    "fields": {
+      "name": "Full name",
+      "namePlaceholder": "e.g. Murugan S",
+      "phone": "Mobile number",
+      "phonePlaceholder": "10-digit mobile number",
+      "phoneHint": "Indian mobile numbers only.",
+      "password": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "passwordHint": "At least 8 characters, with one letter and one number.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "role": "I am a",
+      "district": "District",
+      "village": "Village or town",
+      "villagePlaceholder": "e.g. Attur",
+      "crops": "Crops",
+      "language": "Preferred language",
+      "businessName": "Business name",
+      "businessNamePlaceholder": "e.g. Priya Traders",
+      "gstNumber": "GST number",
+      "gstPlaceholder": "15 characters, e.g. 33ASDFG1234H1ZX",
+      "gstHint": "Optional, but verified faster with it."
+    },
+    "errors": {
+      "INVALID_CREDENTIALS": "Invalid phone or password.",
+      "ACCOUNT_LOCKED": "Too many failed attempts. Please wait and try again.",
+      "ACCOUNT_SUSPENDED": "Your account is suspended. Please contact support.",
+      "DUPLICATE_KEY": "That mobile number is already registered. Try logging in.",
+      "VALIDATION_ERROR": "Please check the highlighted fields.",
+      "CSRF_INVALID": "Your session expired. Please reload the page.",
+      "RATE_LIMITED": "Too many attempts. Please wait a few minutes.",
+      "NETWORK_ERROR": "Cannot reach the server. Check your connection.",
+      "TIMEOUT": "The request timed out. Please try again.",
+      "UNKNOWN_ERROR": "Something went wrong. Please try again."
+    },
+    "sessionExpired": "Your session ended. Please log in again."
+  },
+  "profile": {
+    "title": "Your profile",
+    "subtitle": "Update your details, password and alerts.",
+    "tabs": {
+      "details": "Details",
+      "security": "Password",
+      "alerts": "Alerts",
+      "verification": "Phone"
+    },
+    "details": {
+      "title": "Your details",
+      "saved": "Profile updated."
+    },
+    "security": {
+      "title": "Change password",
+      "description": "Changing your password logs you out of every other device.",
+      "submit": "Change password",
+      "changed": "Password changed."
+    },
+    "alerts": {
+      "title": "Alerts",
+      "whatsapp": "WhatsApp price and offer alerts",
+      "whatsappHint": "Get a daily message with today's prices for your crops, and a message whenever you receive an offer.",
+      "saved": "Alert settings saved."
+    },
+    "phone": {
+      "title": "Phone verification",
+      "verified": "Your number is verified.",
+      "notVerified": "Your number is not verified yet.",
+      "description": "Verifying your number means buyers can trust you, and lets us send you WhatsApp alerts.",
+      "send": "Send code",
+      "sending": "Sending…",
+      "resend": "Send a new code",
+      "codeLabel": "6-digit code",
+      "codePlaceholder": "123456",
+      "verify": "Verify",
+      "verifying": "Verifying…",
+      "sent": "We sent a 6-digit code to {{phone}}. It expires in 5 minutes.",
+      "devCode": "Development mode: your code is {{code}}",
+      "success": "Your phone number is verified."
+    }
+  },
+  "dashboard": {
+    "farmer": {
+      "title": "Farmer dashboard",
+      "welcome": "Welcome back, {{name}}"
+    },
+    "buyer": {
+      "title": "Buyer dashboard",
+      "welcome": "Welcome back, {{name}}"
+    },
+    "admin": {
+      "title": "Admin dashboard",
+      "welcome": "Signed in as administrator"
+    },
+    "placeholder": {
+      "title": "Coming in next phases",
+      "body": "Your prices, listings, offers and orders will appear here."
+    }
+  },
+  "banner": {
+    "pendingBuyer": {
+      "title": "Your buyer account is being verified",
+      "body": "You can browse every crop listing right now. Once our team approves your business details, you will be able to make offers.",
+      "action": "Complete your business details"
+    },
+    "unverifiedPhone": {
+      "title": "Verify your mobile number",
+      "body": "Verified numbers get WhatsApp alerts and are trusted more by buyers.",
+      "action": "Verify now"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Page not found",
+      "body": "The page you are looking for does not exist or has moved.",
+      "home": "Go to home",
+      "dashboard": "Go to dashboard"
+    },
+    "boundary": {
+      "title": "Something went wrong",
+      "body": "An unexpected error occurred. You can try again, or go back to the home page.",
+      "reload": "Reload the page",
+      "details": "Technical details"
+    }
+  },
+  "a11y": {
+    "notifications": "Notifications",
+    "profileMenu": "Profile menu",
+    "mainNavigation": "Main navigation",
+    "bottomNavigation": "Bottom navigation",
+    "userAvatar": "Your profile picture",
+    "loading": "Loading content",
+    "stepComplete": "Step complete",
+    "currentStep": "Current step"
+  },
+  "comingSoon": {
+    "title": "Coming in next phases",
+    "phase": "Phase {{phase}}",
+    "back": "Back to dashboard",
+    "prices": "Today's mandi rates, 30-day trends and the fair-price checker will appear here.",
+    "listings": "The crops you have listed, and the offers buyers have made on them, will appear here.",
+    "orders": "Your orders, escrow payments, pickups and receipts will appear here.",
+    "browse": "Crop listings from farmers across Tamil Nadu will appear here.",
+    "offers": "The offers you have made to farmers will appear here.",
+    "notifications": "Your alerts about prices, offers and orders will appear here."
+  }
+}

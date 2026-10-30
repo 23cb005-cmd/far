@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // The production build resolves `@farmfair/shared` through the workspace
+    // symlink to its compiled `dist`, so the source path mapping is dropped.
+    "paths": {},
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules", "src/**/*.test.ts", "src/__tests__/**/*"]
+}
