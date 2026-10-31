@@ -227,3 +227,19 @@ export const NAME_MAX_LENGTH = 80;
 export const API_PREFIX = '/api/v1';
 
 export const MAX_CROPS_PER_USER = 10;
+
+// ---------------------------------------------------------------------------
+// Mandi prices (Phase 2)
+// ---------------------------------------------------------------------------
+
+export const PRICE_TREND_DEFAULT_DAYS = 30;
+export const PRICE_TREND_MAX_DAYS = 90;
+
+/** A quoted price within this band of today's modal price counts as "fair". */
+export const FAIR_PRICE_TOLERANCE_PERCENT = 5;
+
+export const MANDI_PRICE_SOURCES = ['data_gov', 'generated'] as const;
+export type MandiPriceSource = (typeof MANDI_PRICE_SOURCES)[number];
+
+export const FAIR_PRICE_VERDICTS = ['below_market', 'fair', 'above_market'] as const;
+export type FairPriceVerdict = (typeof FAIR_PRICE_VERDICTS)[number];

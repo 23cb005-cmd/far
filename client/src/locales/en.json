@@ -306,6 +306,50 @@
       "success": "Your phone number is verified."
     }
   },
+  "prices": {
+    "title": "Mandi prices",
+    "subtitle": "Official rates from data.gov.in across Tamil Nadu markets. Falls back to indicative sample prices when the live feed is unavailable.",
+    "districtLabel": "District",
+    "sourceGov": "Government mandi data",
+    "sourceGenerated": "Indicative sample data",
+    "today": {
+      "title": "Today's prices",
+      "empty": "No prices yet for this selection.",
+      "changeUp": "+{{percent}}% vs yesterday",
+      "changeDown": "{{percent}}% vs yesterday"
+    },
+    "trend": {
+      "title": "Price trend",
+      "cropLabel": "Crop",
+      "daysLabel": "Range",
+      "days7": "7 days",
+      "days30": "30 days",
+      "days90": "90 days",
+      "empty": "Not enough data yet for this crop.",
+      "srCaption": "Daily price trend",
+      "srDate": "Date",
+      "srPricePerKg": "Price per kg"
+    },
+    "fairness": {
+      "title": "Fair price checker",
+      "body": "Type a price and see how it compares with today's market average.",
+      "cropLabel": "Crop",
+      "priceLabel": "Price you were offered (per kg)",
+      "submit": "Check",
+      "checking": "Checking…",
+      "notAvailable": "Today's price for this crop is not available yet.",
+      "verdict": {
+        "fair": "Fair price",
+        "below_market": "Below market",
+        "above_market": "Above market"
+      },
+      "verdictBody": {
+        "fair": "That's within {{tolerance}}% of today's average of ₹{{modalPrice}} per kg in {{district}}.",
+        "below_market": "That's {{percent}}% below today's average of ₹{{modalPrice}} per kg in {{district}}.",
+        "above_market": "That's {{percent}}% above today's average of ₹{{modalPrice}} per kg in {{district}}."
+      }
+    }
+  },
   "dashboard": {
     "farmer": {
       "title": "Farmer dashboard",

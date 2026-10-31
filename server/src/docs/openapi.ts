@@ -1,9 +1,14 @@
 import {
   ACCESS_COOKIE,
   API_PREFIX,
+  CROP_KEYS,
   CSRF_HEADER,
+  FAIR_PRICE_TOLERANCE_PERCENT,
   GRADES,
   LANGUAGES,
+  MANDI_PRICE_SOURCES,
+  PRICE_TREND_DEFAULT_DAYS,
+  PRICE_TREND_MAX_DAYS,
   ROLES,
   SELF_REGISTERABLE_ROLES,
   TN_DISTRICTS,
@@ -47,6 +52,7 @@ export const openApiDocument = {
   tags: [
     { name: 'Health', description: 'Service status' },
     { name: 'Auth', description: 'Registration, sessions and profile' },
+    { name: 'Prices', description: 'Mandi (market) prices' },
   ],
   components: {
     securitySchemes: {
@@ -165,6 +171,89 @@ export const openApiDocument = {
         },
       },
       Grade: { type: 'string', enum: [...GRADES] },
+      CropPrice: {
+        type: 'object',
+        properties: {
+          cropKey: { type: 'string', enum: [...CROP_KEYS] },
+          unit: { type: 'string', example: 'kg' },
+          date: { type: 'string', format: 'date' },
+          district: { type: 'string', enum: [...TN_DISTRICTS] },
+          minPrice: { type: 'number' },
+          maxPrice: { type: 'number' },
+          modalPrice: { type: 'number' },
+          markets: { type: 'array', items: { type: 'string' } },
+          source: { type: 'string', enum: [...MANDI_PRICE_SOURCES] },
+          changePercent: { type: 'number', description: 'Versus the previous available day' },
+        },
+      },
+      TodayPricesResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          data: {
+            type: 'object',
+            properties: {
+              district: { type: 'string', enum: [...TN_DISTRICTS] },
+              date: { type: 'string', format: 'date' },
+              crops: { type: 'array', items: { $ref: '#/components/schemas/CropPrice' } },
+            },
+          },
+        },
+      },
+      PriceTrendResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          data: {
+            type: 'object',
+            properties: {
+              district: { type: 'string', enum: [...TN_DISTRICTS] },
+              cropKey: { type: 'string', enum: [...CROP_KEYS] },
+              unit: { type: 'string', example: 'kg' },
+              source: { type: 'string', enum: [...MANDI_PRICE_SOURCES] },
+              points: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    date: { type: 'string', format: 'date' },
+                    modalPrice: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      FairPriceCheckRequest: {
+        type: 'object',
+        required: ['district', 'crop', 'price'],
+        properties: {
+          district: { type: 'string', enum: [...TN_DISTRICTS] },
+          crop: { type: 'string', enum: [...CROP_KEYS] },
+          price: { type: 'number', example: 22 },
+        },
+      },
+      FairPriceCheckResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          data: {
+            type: 'object',
+            properties: {
+              district: { type: 'string', enum: [...TN_DISTRICTS] },
+              cropKey: { type: 'string', enum: [...CROP_KEYS] },
+              unit: { type: 'string', example: 'kg' },
+              date: { type: 'string', format: 'date' },
+              modalPrice: { type: 'number' },
+              yourPrice: { type: 'number' },
+              diffPercent: { type: 'number' },
+              verdict: { type: 'string', enum: ['below_market', 'fair', 'above_market'] },
+              source: { type: 'string', enum: [...MANDI_PRICE_SOURCES] },
+            },
+          },
+        },
+      },
     },
     responses: {
       BadRequest: {
@@ -399,6 +488,105 @@ export const openApiDocument = {
           },
           '400': { $ref: '#/components/responses/BadRequest' },
           '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/prices/today': {
+      get: {
+        tags: ['Prices'],
+        summary: "Today's mandi price per crop for a district",
+        description:
+          'Defaults to the district on the signed-in user, and to their selected crops when they have any. Falls back to generated sample data when `DATA_GOV_API_KEY` is unset.',
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          {
+            name: 'district',
+            in: 'query',
+            schema: { type: 'string', enum: [...TN_DISTRICTS] },
+            description: "Overrides the user's own district",
+          },
+        ],
+        responses: {
+          '200': {
+            description: "Today's prices",
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/TodayPricesResponse' } },
+            },
+          },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/prices/trend': {
+      get: {
+        tags: ['Prices'],
+        summary: 'Daily modal price for one crop over a trailing window',
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          {
+            name: 'district',
+            in: 'query',
+            required: true,
+            schema: { type: 'string', enum: [...TN_DISTRICTS] },
+          },
+          {
+            name: 'crop',
+            in: 'query',
+            required: true,
+            schema: { type: 'string', enum: [...CROP_KEYS] },
+          },
+          {
+            name: 'days',
+            in: 'query',
+            schema: {
+              type: 'integer',
+              minimum: 2,
+              maximum: PRICE_TREND_MAX_DAYS,
+              default: PRICE_TREND_DEFAULT_DAYS,
+            },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Trend points, oldest first',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/PriceTrendResponse' } },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/prices/fair-check': {
+      post: {
+        tags: ['Prices'],
+        summary: "Compare a quoted price against today's modal price",
+        description: `Within ${FAIR_PRICE_TOLERANCE_PERCENT}% of the modal price counts as "fair".`,
+        security: [{ cookieAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/FairPriceCheckRequest' } },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Comparison result',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/FairPriceCheckResponse' },
+              },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '404': {
+            description: "Today's price for that crop is not yet available",
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiFailure' } },
+            },
+          },
         },
       },
     },

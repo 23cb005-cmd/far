@@ -1,4 +1,11 @@
-import type { Grade, Language, Role, VerificationStatus } from './constants';
+import type {
+  FairPriceVerdict,
+  Grade,
+  Language,
+  MandiPriceSource,
+  Role,
+  VerificationStatus,
+} from './constants';
 
 // ---------------------------------------------------------------------------
 // Transport envelope
@@ -122,6 +129,57 @@ export interface OtpSendResponse {
   expiresAt: string;
   /** Present only when the console provider is active (development). */
   devCode?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Mandi prices (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** One crop's aggregated price for a district on a single day. */
+export interface CropPriceDto {
+  cropKey: string;
+  unit: 'kg';
+  date: string;
+  district: string;
+  minPrice: number;
+  maxPrice: number;
+  modalPrice: number;
+  /** Markets aggregated into this figure, e.g. ["Koyambedu Market"]. */
+  markets: string[];
+  source: MandiPriceSource;
+  /** Percent change in modal price versus the previous available day, if any. */
+  changePercent?: number;
+}
+
+export interface TodayPricesResponse {
+  district: string;
+  date: string;
+  crops: CropPriceDto[];
+}
+
+export interface PriceTrendPoint {
+  date: string;
+  modalPrice: number;
+}
+
+export interface PriceTrendResponse {
+  district: string;
+  cropKey: string;
+  unit: 'kg';
+  source: MandiPriceSource;
+  points: PriceTrendPoint[];
+}
+
+export interface FairPriceCheckResponse {
+  district: string;
+  cropKey: string;
+  unit: 'kg';
+  date: string;
+  modalPrice: number;
+  yourPrice: number;
+  diffPercent: number;
+  verdict: FairPriceVerdict;
+  source: MandiPriceSource;
 }
 
 // ---------------------------------------------------------------------------

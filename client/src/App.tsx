@@ -17,6 +17,7 @@ const LandingPage = React.lazy(() => import('@/pages/LandingPage'));
 const LoginPage = React.lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = React.lazy(() => import('@/pages/RegisterPage'));
 const ProfilePage = React.lazy(() => import('@/pages/ProfilePage'));
+const PricesPage = React.lazy(() => import('@/pages/PricesPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 const DashboardPlaceholders = React.lazy(() => import('@/pages/DashboardPlaceholders'));
 const ComingSoonPage = React.lazy(() => import('@/pages/ComingSoonPage'));
@@ -101,12 +102,7 @@ export default function App() {
                 public 404 page, which reads as broken rather than unfinished.
                 Each is replaced by the real page in the phase noted.
               */}
-              <Route
-                path="prices"
-                element={
-                  <ComingSoonPage titleKey="nav.prices" bodyKey="comingSoon.prices" phase={2} />
-                }
-              />
+              <Route path="prices" element={<PricesPage />} />
               <Route
                 path="listings"
                 element={
