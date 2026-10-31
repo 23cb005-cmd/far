@@ -18,6 +18,9 @@ const LoginPage = React.lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = React.lazy(() => import('@/pages/RegisterPage'));
 const ProfilePage = React.lazy(() => import('@/pages/ProfilePage'));
 const PricesPage = React.lazy(() => import('@/pages/PricesPage'));
+const ListingsPage = React.lazy(() => import('@/pages/ListingsPage'));
+const BrowsePage = React.lazy(() => import('@/pages/BrowsePage'));
+const OffersPage = React.lazy(() => import('@/pages/OffersPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 const DashboardPlaceholders = React.lazy(() => import('@/pages/DashboardPlaceholders'));
 const ComingSoonPage = React.lazy(() => import('@/pages/ComingSoonPage'));
@@ -107,11 +110,7 @@ export default function App() {
                 path="listings"
                 element={
                   <RequireAuth roles={['farmer']}>
-                    <ComingSoonPage
-                      titleKey="nav.myListings"
-                      bodyKey="comingSoon.listings"
-                      phase={3}
-                    />
+                    <ListingsPage />
                   </RequireAuth>
                 }
               />
@@ -119,7 +118,7 @@ export default function App() {
                 path="browse"
                 element={
                   <RequireAuth roles={['buyer']}>
-                    <ComingSoonPage titleKey="nav.browse" bodyKey="comingSoon.browse" phase={3} />
+                    <BrowsePage />
                   </RequireAuth>
                 }
               />
@@ -127,7 +126,7 @@ export default function App() {
                 path="offers"
                 element={
                   <RequireAuth roles={['buyer']}>
-                    <ComingSoonPage titleKey="nav.myOffers" bodyKey="comingSoon.offers" phase={3} />
+                    <OffersPage />
                   </RequireAuth>
                 }
               />

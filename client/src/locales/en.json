@@ -350,6 +350,115 @@
       }
     }
   },
+  "listings": {
+    "title": "My listings",
+    "subtitle": "The crops you've listed, and the offers buyers have made on them.",
+    "create": "List a crop",
+    "empty": "You haven't listed any crops yet.",
+    "form": {
+      "title": "List a crop",
+      "description": "Quantity, grade, when it is ready, and the price you want.",
+      "cropLabel": "Crop",
+      "gradeLabel": "Grade",
+      "quantityLabel": "Quantity (kg)",
+      "priceLabel": "Price you want (per kg)",
+      "readyDateLabel": "Ready for pickup on",
+      "photoLabel": "Photo",
+      "photoOptionalLabel": "Optional",
+      "photoHint": "JPEG, PNG or WebP, up to 5 MB",
+      "photoChoose": "Choose photo",
+      "photoChange": "Change photo",
+      "photoRemove": "Remove",
+      "photoTooLarge": "Photo must be smaller than 5 MB",
+      "photoWrongType": "Photo must be a JPEG, PNG or WebP image",
+      "submit": "List this crop",
+      "submitting": "Listing…",
+      "success": "Your crop is listed.",
+      "cancel": "Cancel"
+    },
+    "card": {
+      "quantityAvailable": "{{quantity}} kg available",
+      "expiresIn_one": "Expires in {{count}} day",
+      "expiresIn_other": "Expires in {{count}} days",
+      "expiresToday": "Expires today",
+      "status": {
+        "active": "Active",
+        "withdrawn": "Withdrawn",
+        "expired": "Expired"
+      },
+      "offerCount_one": "{{count}} offer",
+      "offerCount_other": "{{count}} offers",
+      "viewOffers": "View offers",
+      "hideOffers": "Hide offers",
+      "withdraw": "Withdraw listing",
+      "withdrawing": "Withdrawing…",
+      "withdrawnToast": "Listing withdrawn."
+    },
+    "offers": {
+      "empty": "No offers yet.",
+      "vsMarketUp": "{{percent}}% above today's rate",
+      "vsMarketDown": "{{percent}}% below today's rate",
+      "decline": "Decline",
+      "declining": "Declining…",
+      "declineReasonLabel": "Reason (optional)",
+      "declineSubmit": "Decline offer",
+      "declineCancel": "Never mind",
+      "declinedToast": "Offer declined.",
+      "status": {
+        "pending": "Pending",
+        "withdrawn": "Withdrawn by buyer",
+        "declined": "Declined"
+      }
+    }
+  },
+  "browse": {
+    "title": "Browse crops",
+    "subtitle": "Crop listings from farmers across Tamil Nadu.",
+    "empty": "No listings match your filters.",
+    "filters": {
+      "cropLabel": "Crop",
+      "districtLabel": "District",
+      "gradeLabel": "Grade",
+      "anyCrop": "Any crop",
+      "anyDistrict": "Any district",
+      "anyGrade": "Any grade",
+      "clear": "Clear filters"
+    },
+    "card": {
+      "makeOffer": "Make an offer",
+      "verificationRequired": "Your buyer account must be verified to make offers."
+    },
+    "offerDialog": {
+      "title": "Make an offer",
+      "askingPrice": "Asking ₹{{price}} per kg",
+      "availableQuantity": "{{quantity}} kg available",
+      "quantityLabel": "Quantity you want (kg)",
+      "priceLabel": "Your offer (per kg)",
+      "messageLabel": "Message to the farmer",
+      "messageOptionalLabel": "Optional",
+      "submit": "Send offer",
+      "submitting": "Sending…",
+      "success": "Your offer has been sent."
+    }
+  },
+  "offers": {
+    "title": "My offers",
+    "subtitle": "Offers you have made to farmers.",
+    "empty": "You haven't made any offers yet.",
+    "card": {
+      "offered": "You offered ₹{{price}} per kg",
+      "asking": "Asking ₹{{price}} per kg",
+      "quantity": "{{quantity}} kg",
+      "withdraw": "Withdraw offer",
+      "withdrawing": "Withdrawing…",
+      "withdrawnToast": "Offer withdrawn.",
+      "status": {
+        "pending": "Pending",
+        "withdrawn": "Withdrawn",
+        "declined": "Declined"
+      }
+    }
+  },
   "dashboard": {
     "farmer": {
       "title": "Farmer dashboard",

@@ -26,7 +26,7 @@ function addDays(date: string, delta: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-function round2(value: number): number {
+export function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
@@ -191,6 +191,32 @@ export async function getPriceTrend(
   return { district, cropKey, unit: crop?.unit ?? 'kg', source, points };
 }
 
+export interface TodayModalPrice {
+  modalPrice: number;
+  source: MandiPriceSource;
+}
+
+/**
+ * Today's modal price for a crop/district, or `undefined` when none is
+ * available yet. Shared by the fair-price checker and by offers, which
+ * snapshot it to show "this offer is N% below market" (Phase 3).
+ */
+export async function getTodayModalPrice(
+  district: District,
+  cropKey: string,
+): Promise<TodayModalPrice | undefined> {
+  const date = todayDateString();
+  await ensureDayIngested(district, date);
+
+  const docs = await MandiPrice.find({ district, date, cropKey }).exec();
+  if (docs.length === 0) return undefined;
+
+  return {
+    modalPrice: round2(docs.reduce((sum, d) => sum + d.modalPrice, 0) / docs.length),
+    source: docs[0]!.source,
+  };
+}
+
 /** How a quoted price compares with today's modal price for that crop/district. */
 export async function checkFairPrice(
   district: District,
@@ -198,14 +224,12 @@ export async function checkFairPrice(
   price: number,
 ): Promise<FairPriceCheckResponse> {
   const date = todayDateString();
-  await ensureDayIngested(district, date);
-
-  const docs = await MandiPrice.find({ district, date, cropKey }).exec();
-  if (docs.length === 0) {
+  const today = await getTodayModalPrice(district, cropKey);
+  if (!today) {
     throw AppError.notFound("Today's price for this crop is not available yet");
   }
+  const { modalPrice, source } = today;
 
-  const modalPrice = round2(docs.reduce((sum, d) => sum + d.modalPrice, 0) / docs.length);
   const diffPercent = round2(((price - modalPrice) / modalPrice) * 100);
   const verdict: FairPriceVerdict =
     diffPercent < -FAIR_PRICE_TOLERANCE_PERCENT
@@ -224,6 +248,6 @@ export async function checkFairPrice(
     yourPrice: price,
     diffPercent,
     verdict,
-    source: docs[0]!.source,
+    source,
   };
 }

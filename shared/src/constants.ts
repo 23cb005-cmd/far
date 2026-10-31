@@ -243,3 +243,30 @@ export type MandiPriceSource = (typeof MANDI_PRICE_SOURCES)[number];
 
 export const FAIR_PRICE_VERDICTS = ['below_market', 'fair', 'above_market'] as const;
 export type FairPriceVerdict = (typeof FAIR_PRICE_VERDICTS)[number];
+
+// ---------------------------------------------------------------------------
+// Marketplace: listings and offers (Phase 3)
+// ---------------------------------------------------------------------------
+
+/**
+ * `expired` is never set directly - a listing is `active` until it is
+ * withdrawn, or until `expiresAt` passes, at which point it reads as expired
+ * without a background job having to flip the stored value.
+ */
+export const LISTING_STATUSES = ['active', 'withdrawn', 'expired'] as const;
+export type ListingStatus = (typeof LISTING_STATUSES)[number];
+
+/** Accepting an offer forms a deal and belongs to the Phase 4 escrow flow. */
+export const OFFER_STATUSES = ['pending', 'withdrawn', 'declined'] as const;
+export type OfferStatus = (typeof OFFER_STATUSES)[number];
+
+export const MIN_LISTING_QUANTITY_KG = 1;
+export const MAX_LISTING_QUANTITY_KG = 50_000;
+
+export const MIN_PRICE_PER_KG = 0.5;
+export const MAX_PRICE_PER_KG = 10_000;
+
+export const OFFER_MESSAGE_MAX_LENGTH = 300;
+
+export const MAX_PHOTO_SIZE_MB = 5;
+export const ALLOWED_PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;

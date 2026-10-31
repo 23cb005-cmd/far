@@ -2,7 +2,9 @@ import type {
   FairPriceVerdict,
   Grade,
   Language,
+  ListingStatus,
   MandiPriceSource,
+  OfferStatus,
   Role,
   VerificationStatus,
 } from './constants';
@@ -180,6 +182,58 @@ export interface FairPriceCheckResponse {
   diffPercent: number;
   verdict: FairPriceVerdict;
   source: MandiPriceSource;
+}
+
+// ---------------------------------------------------------------------------
+// Marketplace: listings and offers (Phase 3)
+// ---------------------------------------------------------------------------
+
+export interface ListingDto {
+  id: string;
+  farmer: PublicUserDto;
+  cropKey: string;
+  grade: Grade;
+  quantityKg: number;
+  pricePerKg: number;
+  readyDate: string;
+  district: string;
+  photoUrl?: string;
+  /** Computed: `active` reads as `expired` once `expiresAt` has passed. */
+  status: ListingStatus;
+  expiresAt: string;
+  /** Present only on the farmer's own "my listings" view. */
+  offerCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** The slice of a listing an offer needs to render without a second fetch. */
+export interface ListingSummaryDto {
+  id: string;
+  cropKey: string;
+  grade: Grade;
+  pricePerKg: number;
+  quantityKg: number;
+  district: string;
+  photoUrl?: string;
+  status: ListingStatus;
+}
+
+export interface OfferDto {
+  id: string;
+  listing: ListingSummaryDto;
+  buyer: PublicUserDto;
+  quantityKg: number;
+  offeredPricePerKg: number;
+  message?: string;
+  /** Today's modal price for this crop/district when the offer was made. */
+  marketPriceAtOffer?: number;
+  /** `offeredPricePerKg` vs `marketPriceAtOffer`, omitted when no market price was available. */
+  diffPercent?: number;
+  status: OfferStatus;
+  declineReason?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ---------------------------------------------------------------------------

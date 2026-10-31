@@ -6,7 +6,9 @@ import {
   FAIR_PRICE_TOLERANCE_PERCENT,
   GRADES,
   LANGUAGES,
+  LISTING_STATUSES,
   MANDI_PRICE_SOURCES,
+  OFFER_STATUSES,
   PRICE_TREND_DEFAULT_DAYS,
   PRICE_TREND_MAX_DAYS,
   ROLES,
@@ -53,6 +55,8 @@ export const openApiDocument = {
     { name: 'Health', description: 'Service status' },
     { name: 'Auth', description: 'Registration, sessions and profile' },
     { name: 'Prices', description: 'Mandi (market) prices' },
+    { name: 'Listings', description: 'Crop listings' },
+    { name: 'Offers', description: 'Offers made on listings' },
   ],
   components: {
     securitySchemes: {
@@ -252,6 +256,100 @@ export const openApiDocument = {
               source: { type: 'string', enum: [...MANDI_PRICE_SOURCES] },
             },
           },
+        },
+      },
+      Listing: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          farmer: { $ref: '#/components/schemas/PublicUser' },
+          cropKey: { type: 'string', enum: [...CROP_KEYS] },
+          grade: { $ref: '#/components/schemas/Grade' },
+          quantityKg: { type: 'number' },
+          pricePerKg: { type: 'number' },
+          readyDate: { type: 'string', format: 'date-time' },
+          district: { type: 'string', enum: [...TN_DISTRICTS] },
+          photoUrl: { type: 'string' },
+          status: { type: 'string', enum: [...LISTING_STATUSES] },
+          expiresAt: { type: 'string', format: 'date-time' },
+          offerCount: {
+            type: 'integer',
+            description: 'Present only on the farmer’s own "my listings" view',
+          },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      PublicUser: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          role: { type: 'string', enum: [...ROLES] },
+          district: { type: 'string', enum: [...TN_DISTRICTS] },
+          village: { type: 'string' },
+          businessName: { type: 'string' },
+          verified: { type: 'boolean' },
+          ratingAvg: { type: 'number' },
+          ratingCount: { type: 'integer' },
+          memberSince: { type: 'string', format: 'date-time' },
+        },
+      },
+      CreateListingRequest: {
+        type: 'object',
+        required: ['cropKey', 'grade', 'quantityKg', 'pricePerKg', 'readyDate'],
+        description: 'Sent as `multipart/form-data`; `photo` is an optional file field.',
+        properties: {
+          cropKey: { type: 'string', enum: [...CROP_KEYS] },
+          grade: { $ref: '#/components/schemas/Grade' },
+          quantityKg: { type: 'number', example: 200 },
+          pricePerKg: { type: 'number', example: 22 },
+          readyDate: { type: 'string', format: 'date' },
+          photo: { type: 'string', format: 'binary' },
+        },
+      },
+      Offer: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          listing: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              cropKey: { type: 'string', enum: [...CROP_KEYS] },
+              grade: { $ref: '#/components/schemas/Grade' },
+              pricePerKg: { type: 'number' },
+              quantityKg: { type: 'number' },
+              district: { type: 'string', enum: [...TN_DISTRICTS] },
+              photoUrl: { type: 'string' },
+              status: { type: 'string', enum: [...LISTING_STATUSES] },
+            },
+          },
+          buyer: { $ref: '#/components/schemas/PublicUser' },
+          quantityKg: { type: 'number' },
+          offeredPricePerKg: { type: 'number' },
+          message: { type: 'string' },
+          marketPriceAtOffer: { type: 'number' },
+          diffPercent: { type: 'number' },
+          status: { type: 'string', enum: [...OFFER_STATUSES] },
+          declineReason: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      CreateOfferRequest: {
+        type: 'object',
+        required: ['quantityKg', 'offeredPricePerKg'],
+        properties: {
+          quantityKg: { type: 'number', example: 50 },
+          offeredPricePerKg: { type: 'number', example: 20 },
+          message: { type: 'string', example: 'Can collect this weekend' },
+        },
+      },
+      DeclineOfferRequest: {
+        type: 'object',
+        properties: {
+          reason: { type: 'string', example: 'Already sold the full quantity' },
         },
       },
     },
@@ -587,6 +685,191 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ApiFailure' } },
             },
           },
+        },
+      },
+    },
+    '/listings': {
+      post: {
+        tags: ['Listings'],
+        summary: 'Create a crop listing',
+        description: "Farmers only. District is taken from the farmer's own profile.",
+        security: [{ cookieAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: { $ref: '#/components/schemas/CreateListingRequest' },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Listing created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/Listing' } },
+                },
+              },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+      get: {
+        tags: ['Listings'],
+        summary: 'Browse active listings',
+        description: 'Any signed-in, non-suspended user, including pending buyers.',
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          { name: 'crop', in: 'query', schema: { type: 'string', enum: [...CROP_KEYS] } },
+          { name: 'district', in: 'query', schema: { type: 'string', enum: [...TN_DISTRICTS] } },
+          { name: 'grade', in: 'query', schema: { $ref: '#/components/schemas/Grade' } },
+          { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 50 } },
+        ],
+        responses: {
+          '200': { description: 'A page of active listings' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/listings/mine': {
+      get: {
+        tags: ['Listings'],
+        summary: "A farmer's own listings, with each one's pending offer count",
+        security: [{ cookieAuth: [] }],
+        responses: {
+          '200': { description: "A page of the signed-in farmer's listings" },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+    '/listings/{id}': {
+      get: {
+        tags: ['Listings'],
+        summary: 'Listing detail',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'The listing' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '404': { description: 'No such listing' },
+        },
+      },
+    },
+    '/listings/{id}/withdraw': {
+      patch: {
+        tags: ['Listings'],
+        summary: 'Close a listing early',
+        description: 'The owning farmer only. A withdrawn listing cannot be reopened.',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'Withdrawn' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+          '409': { description: 'The listing is already withdrawn or has expired' },
+        },
+      },
+    },
+    '/listings/{id}/offers': {
+      post: {
+        tags: ['Offers'],
+        summary: 'Make an offer on a listing',
+        description:
+          "Approved buyers only. The offer is labelled against today's modal price for the listing's crop and district at the moment it is made.",
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/CreateOfferRequest' } },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Offer created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/Offer' } },
+                },
+              },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': {
+            description: 'Not a buyer, or a pending buyer awaiting verification',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiFailure' } },
+            },
+          },
+        },
+      },
+      get: {
+        tags: ['Offers'],
+        summary: 'Offers made on one of your own listings',
+        description: 'The owning farmer only.',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'A page of offers' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+    '/offers/mine': {
+      get: {
+        tags: ['Offers'],
+        summary: 'Offers you have made, across every listing',
+        security: [{ cookieAuth: [] }],
+        responses: {
+          '200': { description: "A page of the signed-in buyer's offers" },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+    '/offers/{id}/withdraw': {
+      patch: {
+        tags: ['Offers'],
+        summary: 'Withdraw a pending offer',
+        description: 'The offering buyer only.',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'Withdrawn' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+          '409': { description: 'The offer is no longer pending' },
+        },
+      },
+    },
+    '/offers/{id}/decline': {
+      patch: {
+        tags: ['Offers'],
+        summary: 'Decline a pending offer',
+        description: 'The farmer who owns the listing the offer was made on, only.',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/DeclineOfferRequest' } },
+          },
+        },
+        responses: {
+          '200': { description: 'Declined' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+          '409': { description: 'The offer is no longer pending' },
         },
       },
     },

@@ -6,10 +6,11 @@ Fair price discovery and a trusted marketplace for Tamil Nadu farmers and crop
 buyers. Farmers see today's official mandi rates, list their crop, compare
 openly-labelled offers, and get paid through escrow.
 
-> **Status: Phase 2 complete** — foundation, security, authentication and mandi
-> prices (today's rates, 30-day trends, the fair-price checker). Later phases
-> add the marketplace, escrow orders, notifications, a WhatsApp bot and the
-> admin panel. Full documentation lands in Phase 8.
+> **Status: Phase 3 complete** — foundation, security, authentication, mandi
+> prices and the marketplace (crop listings with photos, browsing and
+> filtering, offers labelled against today's mandi rate). Later phases add
+> escrow orders, notifications, a WhatsApp bot and the admin panel. Full
+> documentation lands in Phase 8.
 
 ## Stack
 

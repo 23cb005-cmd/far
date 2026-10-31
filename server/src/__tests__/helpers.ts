@@ -162,6 +162,21 @@ export async function registerAndLogin(
   return { c, body: res.body };
 }
 
+/**
+ * Seed a user directly (so fields the public API cannot set, like an
+ * `approved` buyer, can be set up), then sign in through the real HTTP flow
+ * so the test exercises the same session/CSRF handshake a browser does.
+ */
+export async function seedAndLogin(
+  overrides: Parameters<typeof seedUser>[0] & { password?: string } = {},
+): Promise<Client> {
+  const password = overrides.password ?? 'farmfair1';
+  const user = await seedUser({ ...overrides, password });
+  const c = await client();
+  await c.post('/auth/login').send({ phone: user.phone, password }).expect(200);
+  return c;
+}
+
 /** Pull a named cookie value out of a supertest response. */
 export function cookieValue(res: request.Response, name: string): string | undefined {
   const raw = res.headers['set-cookie'];

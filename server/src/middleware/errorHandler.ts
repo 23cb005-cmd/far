@@ -1,6 +1,7 @@
-import { ERROR_CODES } from '@farmfair/shared';
+import { ERROR_CODES, MAX_PHOTO_SIZE_MB } from '@farmfair/shared';
 import type { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
+import multer from 'multer';
 import { ZodError } from 'zod';
 import { isProduction } from '../config/env';
 import { logger } from '../config/logger';
@@ -61,6 +62,18 @@ function normalise(error: unknown): Normalised {
         path: e.path,
         message: e.message,
       })),
+    };
+  }
+
+  // Upload rejected by multer (wrong field, too large, too many files).
+  if (error instanceof multer.MulterError) {
+    return {
+      status: 400,
+      code: ERROR_CODES.VALIDATION_ERROR,
+      message:
+        error.code === 'LIMIT_FILE_SIZE'
+          ? `Photo must be smaller than ${MAX_PHOTO_SIZE_MB} MB`
+          : 'Could not process the uploaded file',
     };
   }
 

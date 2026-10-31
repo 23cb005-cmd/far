@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { API_PREFIX, CSRF_HEADER } from '@farmfair/shared';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -140,6 +141,15 @@ export function createApp(): Express {
 
   // ---- 10. global rate limit ----
   app.use(API_PREFIX, generalLimiter);
+
+  // ---- listing photos: public, read-only, no CSRF needed for a GET ----
+  app.use(
+    `${API_PREFIX}/uploads`,
+    express.static(path.resolve(__dirname, '../', env.UPLOAD_DIR), {
+      maxAge: isProduction ? '7d' : 0,
+      index: false,
+    }),
+  );
 
   // ---- API docs: development only, mounted before CSRF so the UI loads ----
   if (isDevelopment) {
