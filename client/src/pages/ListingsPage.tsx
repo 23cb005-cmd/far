@@ -39,7 +39,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
-import { useDeclineOffer, useOffersForListing } from '@/hooks/useOffers';
+import { useAcceptOffer, useDeclineOffer, useOffersForListing } from '@/hooks/useOffers';
 import { useCreateListing, useMyListings, useWithdrawListing } from '@/hooks/useListings';
 import { getLanguage } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -407,13 +407,21 @@ function ListingCard({ listing }: { listing: ListingDto }) {
 
 function OfferStatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
-  const variant = status === 'pending' ? 'info' : status === 'declined' ? 'danger' : 'secondary';
+  const variant =
+    status === 'accepted'
+      ? 'success'
+      : status === 'pending'
+        ? 'info'
+        : status === 'declined'
+          ? 'danger'
+          : 'secondary';
   return <Badge variant={variant}>{t(`listings.offers.status.${status}`)}</Badge>;
 }
 
 function ListingOffers({ listingId }: { listingId: string }) {
   const { t } = useTranslation();
   const offers = useOffersForListing(listingId);
+  const accept = useAcceptOffer();
   const decline = useDeclineOffer();
   const [decliningId, setDecliningId] = React.useState<string | null>(null);
   const [reason, setReason] = React.useState('');
@@ -501,15 +509,29 @@ function ListingOffers({ listingId }: { listingId: string }) {
                 </div>
               </div>
             ) : (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="mt-2"
-                onClick={() => setDecliningId(offer.id)}
-              >
-                {t('listings.offers.decline')}
-              </Button>
+              <div className="mt-2 flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={accept.isPending}
+                  onClick={() =>
+                    accept.mutate(offer.id, {
+                      onSuccess: () => toast.success(t('listings.offers.acceptedToast')),
+                    })
+                  }
+                >
+                  {accept.isPending && <Loader2 className="animate-spin" aria-hidden="true" />}
+                  {accept.isPending ? t('listings.offers.accepting') : t('listings.offers.accept')}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setDecliningId(offer.id)}
+                >
+                  {t('listings.offers.decline')}
+                </Button>
+              </div>
             ))}
         </div>
       ))}

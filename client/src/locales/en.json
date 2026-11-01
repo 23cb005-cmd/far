@@ -398,6 +398,9 @@
       "empty": "No offers yet.",
       "vsMarketUp": "{{percent}}% above today's rate",
       "vsMarketDown": "{{percent}}% below today's rate",
+      "accept": "Accept",
+      "accepting": "Accepting…",
+      "acceptedToast": "Offer accepted. The buyer can now pay into escrow.",
       "decline": "Decline",
       "declining": "Declining…",
       "declineReasonLabel": "Reason (optional)",
@@ -407,7 +410,8 @@
       "status": {
         "pending": "Pending",
         "withdrawn": "Withdrawn by buyer",
-        "declined": "Declined"
+        "declined": "Declined",
+        "accepted": "Accepted"
       }
     }
   },
@@ -455,8 +459,52 @@
       "status": {
         "pending": "Pending",
         "withdrawn": "Withdrawn",
-        "declined": "Declined"
+        "declined": "Declined",
+        "accepted": "Accepted - pay now"
       }
+    }
+  },
+  "orders": {
+    "title": "My orders",
+    "subtitle": "Deals in progress, and the ones you've completed.",
+    "empty": "You don't have any orders yet.",
+    "card": {
+      "quantity": "{{quantity}} kg",
+      "totalAmount": "₹{{amount}} total",
+      "payout": "₹{{amount}} after {{percent}}% commission",
+      "pay": "Pay into escrow",
+      "paying": "Paying…",
+      "paidToast": "Payment sent to escrow.",
+      "confirmPickup": "Confirm pickup",
+      "confirming": "Confirming…",
+      "confirmedToast": "Pickup confirmed.",
+      "waitingOnOther": "Waiting for {{party}} to confirm",
+      "youConfirmed": "You've confirmed. Waiting for {{party}}.",
+      "farmer": "the farmer",
+      "buyer": "the buyer",
+      "cancel": "Cancel order",
+      "cancelling": "Cancelling…",
+      "cancelledToast": "Order cancelled.",
+      "cancelReasonLabel": "Reason (optional)",
+      "cancelConfirm": "Cancel this order",
+      "cancelDismiss": "Never mind",
+      "rate": "Rate this order",
+      "rated": "You rated this order",
+      "status": {
+        "pending_payment": "Awaiting payment",
+        "paid": "Paid - awaiting pickup",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "rating": {
+      "title": "Rate {{name}}",
+      "scoreLabel": "Score",
+      "commentLabel": "Comment",
+      "commentOptionalLabel": "Optional",
+      "submit": "Submit rating",
+      "submitting": "Submitting…",
+      "success": "Thanks for your rating."
     }
   },
   "dashboard": {

@@ -1,4 +1,4 @@
-import type { OfferDto, Paginated } from '@farmfair/shared';
+import type { OfferDto, OrderDto, Paginated } from '@farmfair/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiRequestError } from '@/lib/api';
 import { offersApi, type CreateOfferFormInput } from '@/lib/offersApi';
@@ -48,6 +48,18 @@ export function useDeclineOffer() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['offers'] });
       void queryClient.invalidateQueries({ queryKey: ['listings', 'mine'] });
+    },
+  });
+}
+
+export function useAcceptOffer() {
+  const queryClient = useQueryClient();
+  return useMutation<OrderDto, ApiRequestError, string>({
+    mutationFn: (id) => offersApi.accept(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['offers'] });
+      void queryClient.invalidateQueries({ queryKey: ['listings'] });
+      void queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });
 }

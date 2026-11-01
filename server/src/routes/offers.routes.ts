@@ -1,6 +1,7 @@
 import { declineOfferSchema, idParamSchema, paginationSchema } from '@farmfair/shared';
 import { Router } from 'express';
 import {
+  acceptOfferHandler,
   declineOfferHandler,
   getMyOffersHandler,
   withdrawOfferHandler,
@@ -34,4 +35,13 @@ offersRouter.patch(
   blockSuspended,
   validate({ params: idParamSchema, body: declineOfferSchema }),
   declineOfferHandler,
+);
+
+offersRouter.patch(
+  '/:id/accept',
+  requireAuth,
+  requireRole('farmer'),
+  blockSuspended,
+  validate({ params: idParamSchema }),
+  acceptOfferHandler,
 );

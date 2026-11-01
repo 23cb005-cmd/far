@@ -3,9 +3,11 @@ import {
   declineOfferSchema,
   paginationSchema,
   type OfferDto,
+  type OrderDto,
   type Paginated,
 } from '@farmfair/shared';
 import { currentUser } from '../middleware/auth';
+import { acceptOffer } from '../services/orders';
 import {
   createOffer,
   declineOffer,
@@ -53,4 +55,15 @@ export const declineOfferHandler = asyncHandler(async (req, res) => {
   const input = declineOfferSchema.parse(req.body);
   const offer: OfferDto = await declineOffer(farmer, req.params.id!, input);
   sendSuccess(res, offer);
+});
+
+/**
+ * PATCH /offers/:id/accept
+ * Forms a deal: creates an Order, marks the listing sold, and declines every
+ * other pending offer on it.
+ */
+export const acceptOfferHandler = asyncHandler(async (req, res) => {
+  const farmer = currentUser(req);
+  const order: OrderDto = await acceptOffer(farmer, req.params.id!);
+  sendCreated(res, order);
 });

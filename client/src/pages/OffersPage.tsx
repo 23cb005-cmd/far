@@ -10,7 +10,14 @@ import { getLanguage } from '@/lib/i18n';
 
 function OfferStatusBadge({ status }: { status: OfferDto['status'] }) {
   const { t } = useTranslation();
-  const variant = status === 'pending' ? 'info' : status === 'declined' ? 'danger' : 'secondary';
+  const variant =
+    status === 'accepted'
+      ? 'success'
+      : status === 'pending'
+        ? 'info'
+        : status === 'declined'
+          ? 'danger'
+          : 'secondary';
   return <Badge variant={variant}>{t(`offers.card.status.${status}`)}</Badge>;
 }
 

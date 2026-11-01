@@ -1,4 +1,4 @@
-import type { OfferDto, Paginated } from '@farmfair/shared';
+import type { OfferDto, OrderDto, Paginated } from '@farmfair/shared';
 import { apiGet, apiPatch, apiPost } from './api';
 
 export interface CreateOfferFormInput {
@@ -22,4 +22,7 @@ export const offersApi = {
 
   decline: (id: string, reason?: string) =>
     apiPatch<OfferDto>(`/offers/${id}/decline`, reason ? { reason } : {}),
+
+  /** Accepts the offer, forming an order. */
+  accept: (id: string) => apiPatch<OrderDto>(`/offers/${id}/accept`),
 };

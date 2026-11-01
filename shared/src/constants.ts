@@ -251,13 +251,15 @@ export type FairPriceVerdict = (typeof FAIR_PRICE_VERDICTS)[number];
 /**
  * `expired` is never set directly - a listing is `active` until it is
  * withdrawn, or until `expiresAt` passes, at which point it reads as expired
- * without a background job having to flip the stored value.
+ * without a background job having to flip the stored value. `sold` is set
+ * once one of its offers is accepted (Phase 4): a listing is one batch, sold
+ * to one buyer, not a pool of inventory split across multiple deals.
  */
-export const LISTING_STATUSES = ['active', 'withdrawn', 'expired'] as const;
+export const LISTING_STATUSES = ['active', 'withdrawn', 'expired', 'sold'] as const;
 export type ListingStatus = (typeof LISTING_STATUSES)[number];
 
-/** Accepting an offer forms a deal and belongs to the Phase 4 escrow flow. */
-export const OFFER_STATUSES = ['pending', 'withdrawn', 'declined'] as const;
+/** Accepting an offer (Phase 4) forms a deal and creates an Order. */
+export const OFFER_STATUSES = ['pending', 'withdrawn', 'declined', 'accepted'] as const;
 export type OfferStatus = (typeof OFFER_STATUSES)[number];
 
 export const MIN_LISTING_QUANTITY_KG = 1;
@@ -270,3 +272,29 @@ export const OFFER_MESSAGE_MAX_LENGTH = 300;
 
 export const MAX_PHOTO_SIZE_MB = 5;
 export const ALLOWED_PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
+// ---------------------------------------------------------------------------
+// Escrow orders (Phase 4)
+// ---------------------------------------------------------------------------
+
+/**
+ * `pending_payment` - offer accepted, Order created, awaiting the buyer's
+ * escrow payment.
+ * `paid`            - money held in escrow; awaiting pickup confirmation
+ *                      from both sides.
+ * `completed`       - both farmer and buyer confirmed pickup; funds
+ *                      released (simulated) to the farmer minus commission.
+ * `cancelled`       - cancelled before payment; no money was ever involved.
+ *                      Once `paid`, the only forward path is `completed`.
+ */
+export const ORDER_STATUSES = ['pending_payment', 'paid', 'completed', 'cancelled'] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export const PAYMENT_PROVIDERS = ['simulated', 'razorpay'] as const;
+export type PaymentProviderName = (typeof PAYMENT_PROVIDERS)[number];
+
+export const RATING_MIN = 1;
+export const RATING_MAX = 5;
+export const RATING_COMMENT_MAX_LENGTH = 300;
+
+export const CANCEL_REASON_MAX_LENGTH = 300;

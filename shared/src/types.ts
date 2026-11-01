@@ -5,6 +5,8 @@ import type {
   ListingStatus,
   MandiPriceSource,
   OfferStatus,
+  OrderStatus,
+  PaymentProviderName,
   Role,
   VerificationStatus,
 } from './constants';
@@ -234,6 +236,49 @@ export interface OfferDto {
   declineReason?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ---------------------------------------------------------------------------
+// Escrow orders and ratings (Phase 4)
+// ---------------------------------------------------------------------------
+
+export interface OrderDto {
+  id: string;
+  listing: ListingSummaryDto;
+  farmer: PublicUserDto;
+  buyer: PublicUserDto;
+  cropKey: string;
+  /** Snapshot at the moment the offer was accepted: later edits to the
+   *  listing or further offers never change an existing order. */
+  quantityKg: number;
+  pricePerKg: number;
+  totalAmount: number;
+  commissionPercent: number;
+  commissionAmount: number;
+  /** What the farmer receives once the order completes: `totalAmount - commissionAmount`. */
+  payoutAmount: number;
+  status: OrderStatus;
+  paymentProvider?: PaymentProviderName;
+  paidAt?: string;
+  farmerConfirmedAt?: string;
+  buyerConfirmedAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
+  cancelReason?: string;
+  /** Whether the signed-in user has already rated the other party on this order. */
+  myRatingSubmitted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RatingDto {
+  id: string;
+  order: string;
+  rater: string;
+  ratee: string;
+  score: number;
+  comment?: string;
+  createdAt: string;
 }
 
 // ---------------------------------------------------------------------------

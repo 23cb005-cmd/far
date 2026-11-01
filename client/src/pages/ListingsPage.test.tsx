@@ -11,6 +11,7 @@ const create = vi.fn();
 const withdraw = vi.fn();
 const forListing = vi.fn();
 const decline = vi.fn();
+const accept = vi.fn();
 
 vi.mock('@/lib/listingsApi', () => ({
   listingsApi: {
@@ -26,6 +27,7 @@ vi.mock('@/lib/offersApi', () => ({
   offersApi: {
     forListing: (...args: unknown[]) => forListing(...args),
     decline: (...args: unknown[]) => decline(...args),
+    accept: (...args: unknown[]) => accept(...args),
     mine: vi.fn(),
     create: vi.fn(),
     withdraw: vi.fn(),
@@ -132,6 +134,7 @@ describe('ListingsPage', () => {
     withdraw.mockReset();
     forListing.mockReset().mockResolvedValue(page([OFFER]));
     decline.mockReset();
+    accept.mockReset();
   });
 
   afterEach(() => {
@@ -215,5 +218,20 @@ describe('ListingsPage', () => {
     await user.click(screen.getByRole('button', { name: /^decline offer$/i }));
 
     await waitFor(() => expect(decline).toHaveBeenCalledWith('o1', 'Sold out'));
+  });
+
+  it('accepts an offer, forming an order', async () => {
+    const user = userEvent.setup();
+    accept.mockResolvedValue({ id: 'ord1', status: 'pending_payment' });
+
+    renderWithProviders(<ListingsPage />);
+    await screen.findByText('Tomato');
+
+    await user.click(screen.getByRole('button', { name: /view offers/i }));
+    expect(await screen.findByText('Priya R')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /^accept$/i }));
+
+    await waitFor(() => expect(accept).toHaveBeenCalledWith('o1'));
   });
 });

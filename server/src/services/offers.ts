@@ -131,7 +131,7 @@ export async function getMyOffers(
   return paginated(items, page, limit, total);
 }
 
-async function getOwnedOfferOrThrow(offerId: string) {
+export async function getOwnedOfferOrThrow(offerId: string) {
   const offer = await Offer.findById(offerId)
     .populate<{ listing: ListingDocument; buyer: UserDocument }>(['listing', 'buyer'])
     .exec();

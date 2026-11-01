@@ -9,8 +9,12 @@ import {
   LISTING_STATUSES,
   MANDI_PRICE_SOURCES,
   OFFER_STATUSES,
+  ORDER_STATUSES,
+  PAYMENT_PROVIDERS,
   PRICE_TREND_DEFAULT_DAYS,
   PRICE_TREND_MAX_DAYS,
+  RATING_MAX,
+  RATING_MIN,
   ROLES,
   SELF_REGISTERABLE_ROLES,
   TN_DISTRICTS,
@@ -57,6 +61,7 @@ export const openApiDocument = {
     { name: 'Prices', description: 'Mandi (market) prices' },
     { name: 'Listings', description: 'Crop listings' },
     { name: 'Offers', description: 'Offers made on listings' },
+    { name: 'Orders', description: 'Escrow orders formed by accepting an offer' },
   ],
   components: {
     securitySchemes: {
@@ -350,6 +355,71 @@ export const openApiDocument = {
         type: 'object',
         properties: {
           reason: { type: 'string', example: 'Already sold the full quantity' },
+        },
+      },
+      Order: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          listing: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              cropKey: { type: 'string', enum: [...CROP_KEYS] },
+              grade: { $ref: '#/components/schemas/Grade' },
+              pricePerKg: { type: 'number' },
+              quantityKg: { type: 'number' },
+              district: { type: 'string', enum: [...TN_DISTRICTS] },
+              photoUrl: { type: 'string' },
+              status: { type: 'string', enum: [...LISTING_STATUSES] },
+            },
+          },
+          farmer: { $ref: '#/components/schemas/PublicUser' },
+          buyer: { $ref: '#/components/schemas/PublicUser' },
+          cropKey: { type: 'string', enum: [...CROP_KEYS] },
+          quantityKg: { type: 'number' },
+          pricePerKg: { type: 'number' },
+          totalAmount: { type: 'number' },
+          commissionPercent: { type: 'number' },
+          commissionAmount: { type: 'number' },
+          payoutAmount: { type: 'number' },
+          status: { type: 'string', enum: [...ORDER_STATUSES] },
+          paymentProvider: { type: 'string', enum: [...PAYMENT_PROVIDERS] },
+          paidAt: { type: 'string', format: 'date-time' },
+          farmerConfirmedAt: { type: 'string', format: 'date-time' },
+          buyerConfirmedAt: { type: 'string', format: 'date-time' },
+          completedAt: { type: 'string', format: 'date-time' },
+          cancelledAt: { type: 'string', format: 'date-time' },
+          cancelReason: { type: 'string' },
+          myRatingSubmitted: { type: 'boolean' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      CancelOrderRequest: {
+        type: 'object',
+        properties: {
+          reason: { type: 'string', example: 'Changed my mind' },
+        },
+      },
+      Rating: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          order: { type: 'string' },
+          rater: { type: 'string' },
+          ratee: { type: 'string' },
+          score: { type: 'integer', minimum: RATING_MIN, maximum: RATING_MAX },
+          comment: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      CreateRatingRequest: {
+        type: 'object',
+        required: ['score'],
+        properties: {
+          score: { type: 'integer', minimum: RATING_MIN, maximum: RATING_MAX, example: 5 },
+          comment: { type: 'string', example: 'Smooth pickup, good quality.' },
         },
       },
     },
@@ -870,6 +940,165 @@ export const openApiDocument = {
           '401': { $ref: '#/components/responses/Unauthorized' },
           '403': { $ref: '#/components/responses/Forbidden' },
           '409': { description: 'The offer is no longer pending' },
+        },
+      },
+    },
+    '/offers/{id}/accept': {
+      patch: {
+        tags: ['Offers', 'Orders'],
+        summary: 'Accept a pending offer, forming an order',
+        description:
+          'The farmer who owns the listing the offer was made on, only. Marks the listing sold and declines every other pending offer on it.',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '201': {
+            description: 'Order created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/Order' } },
+                },
+              },
+            },
+          },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+          '409': { description: 'The offer or its listing is no longer active' },
+        },
+      },
+    },
+    '/orders/mine': {
+      get: {
+        tags: ['Orders'],
+        summary: 'Every order where you are the farmer or the buyer',
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 50 } },
+        ],
+        responses: {
+          '200': { description: 'A page of orders' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/orders/{id}/pay': {
+      patch: {
+        tags: ['Orders'],
+        summary: "Pay the order's total into escrow",
+        description:
+          'The buyer only. Uses the configured payment provider (simulated unless `PAYMENT_PROVIDER=razorpay`, which is not yet implemented and falls back to simulated).',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': {
+            description: 'Paid',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/Order' } },
+                },
+              },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+          '409': { description: 'The order is not awaiting payment' },
+        },
+      },
+    },
+    '/orders/{id}/confirm': {
+      patch: {
+        tags: ['Orders'],
+        summary: 'Confirm pickup from one side',
+        description:
+          'Either party. The order completes - and funds are considered released to the farmer - once both sides have confirmed.',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': {
+            description: 'Confirmed',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/Order' } },
+                },
+              },
+            },
+          },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+          '409': {
+            description: 'The order is not paid yet, or this party already confirmed',
+          },
+        },
+      },
+    },
+    '/orders/{id}/cancel': {
+      patch: {
+        tags: ['Orders'],
+        summary: 'Cancel an order before payment',
+        description:
+          'Either party. Only possible while the order is awaiting payment; once paid, the only forward path is pickup confirmation. Reactivates the listing.',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/CancelOrderRequest' } },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Cancelled',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/Order' } },
+                },
+              },
+            },
+          },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+          '409': { description: 'The order has already been paid' },
+        },
+      },
+    },
+    '/orders/{id}/rating': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Rate the other party on a completed order',
+        description: "Either party, once per order. Recomputes the ratee's rating average.",
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/CreateRatingRequest' } },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Rating recorded',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/Rating' } },
+                },
+              },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+          '409': { description: 'The order is not completed, or you have already rated it' },
         },
       },
     },
