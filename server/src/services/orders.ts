@@ -17,6 +17,7 @@ import { AppError } from '../utils/AppError';
 import { paginated } from '../utils/respond';
 import { getOwnedOfferOrThrow } from './offers';
 import { round2 } from './mandiPrices';
+import { notify } from './notifications';
 
 /** See the comment on `toListingDto` in `listings.ts` for why these take `Omit`. */
 function toOrderDto(
@@ -131,6 +132,13 @@ export async function acceptOffer(farmer: UserDocument, offerId: string): Promis
     { status: 'declined', declineReason: 'The listing was sold to another buyer.' },
   );
 
+  await notify(
+    offer.buyer._id,
+    'offer_accepted',
+    { cropKey: offer.listing.cropKey, totalAmount },
+    { orderId: String(order._id), listingId: String(offer.listing._id) },
+  );
+
   return toOrderDto(order, offer.listing, farmer, offer.buyer, false);
 }
 
@@ -160,6 +168,13 @@ export async function payOrder(buyer: UserDocument, orderId: string): Promise<Or
   order.paymentReference = result.reference;
   order.paidAt = new Date();
   await order.save();
+
+  await notify(
+    order.farmer._id,
+    'order_paid',
+    { cropKey: order.cropKey },
+    { orderId: String(order._id) },
+  );
 
   const rated = await hasRated(order._id, buyer._id);
   return toOrderDto(order, order.listing, order.farmer, order.buyer, rated);
@@ -196,6 +211,14 @@ export async function confirmPickup(user: UserDocument, orderId: string): Promis
   }
   await order.save();
 
+  if (order.status === 'completed') {
+    const data = { orderId: String(order._id) };
+    await Promise.all([
+      notify(order.farmer._id, 'order_completed', { cropKey: order.cropKey }, data),
+      notify(order.buyer._id, 'order_completed', { cropKey: order.cropKey }, data),
+    ]);
+  }
+
   const rated = await hasRated(order._id, user._id);
   return toOrderDto(order, order.listing, order.farmer, order.buyer, rated);
 }
@@ -219,6 +242,15 @@ export async function cancelOrder(
 
   order.listing.status = 'active';
   await order.listing.save();
+
+  const isFarmer = String(order.farmer._id) === String(user._id);
+  const otherPartyId = isFarmer ? order.buyer._id : order.farmer._id;
+  await notify(
+    otherPartyId,
+    'order_cancelled',
+    { cropKey: order.cropKey, ...(order.cancelReason ? { reason: order.cancelReason } : {}) },
+    { orderId: String(order._id) },
+  );
 
   return toOrderDto(order, order.listing, order.farmer, order.buyer, false);
 }
@@ -304,6 +336,13 @@ export async function submitRating(
   });
 
   await recomputeRatingAggregate(rateeId);
+
+  await notify(
+    rateeId,
+    'rating_received',
+    { raterName: user.name, score: input.score },
+    { orderId: String(order._id) },
+  );
 
   return {
     id: String(rating._id),

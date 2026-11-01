@@ -3,10 +3,15 @@ import { createApp } from './app';
 import { connectDb, disconnectDb } from './config/db';
 import { env, isDevelopment } from './config/env';
 import { logger } from './config/logger';
+import { registerJobs, stopJobs } from './jobs';
 import { version } from './version';
 
 async function start(): Promise<void> {
   await connectDb();
+
+  if (env.JOBS_ENABLED) {
+    registerJobs();
+  }
 
   const app = createApp();
   const server: Server = app.listen(env.PORT, () => {
@@ -46,6 +51,7 @@ async function start(): Promise<void> {
     forceExit.unref();
 
     try {
+      stopJobs();
       await new Promise<void>((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));
       });

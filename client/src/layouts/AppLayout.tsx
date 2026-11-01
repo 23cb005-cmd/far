@@ -1,5 +1,4 @@
 import {
-  Bell,
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
@@ -16,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
 import { Logo } from '@/components/Logo';
+import { NotificationBell } from '@/components/NotificationBell';
 import { PendingBuyerBanner } from '@/components/PendingBuyerBanner';
 import { ThemeToggle } from '@/components/ThemeProvider';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -124,10 +124,7 @@ export function AppLayout() {
           <LanguageSwitch compact />
           <ThemeToggle />
 
-          {/* Notification bell: wired up in Phase 5. */}
-          <Button variant="ghost" size="icon" aria-label={t('a11y.notifications')} disabled>
-            <Bell className="size-5" aria-hidden="true" />
-          </Button>
+          <NotificationBell />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

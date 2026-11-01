@@ -5,9 +5,12 @@ import {
   CSRF_HEADER,
   FAIR_PRICE_TOLERANCE_PERCENT,
   GRADES,
+  JOB_NAMES,
+  JOB_RUN_STATUSES,
   LANGUAGES,
   LISTING_STATUSES,
   MANDI_PRICE_SOURCES,
+  NOTIFICATION_TYPES,
   OFFER_STATUSES,
   ORDER_STATUSES,
   PAYMENT_PROVIDERS,
@@ -420,6 +423,31 @@ export const openApiDocument = {
         properties: {
           score: { type: 'integer', minimum: RATING_MIN, maximum: RATING_MAX, example: 5 },
           comment: { type: 'string', example: 'Smooth pickup, good quality.' },
+        },
+      },
+      Notification: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          type: { type: 'string', enum: [...NOTIFICATION_TYPES] },
+          title: { type: 'string' },
+          message: { type: 'string' },
+          data: { type: 'object', additionalProperties: true },
+          read: { type: 'boolean' },
+          readAt: { type: 'string', format: 'date-time' },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      JobRun: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string', enum: [...JOB_NAMES] },
+          status: { type: 'string', enum: [...JOB_RUN_STATUSES] },
+          startedAt: { type: 'string', format: 'date-time' },
+          finishedAt: { type: 'string', format: 'date-time' },
+          summary: { type: 'string' },
+          error: { type: 'string' },
         },
       },
     },
@@ -1099,6 +1127,111 @@ export const openApiDocument = {
           '401': { $ref: '#/components/responses/Unauthorized' },
           '403': { $ref: '#/components/responses/Forbidden' },
           '409': { description: 'The order is not completed, or you have already rated it' },
+        },
+      },
+    },
+    '/notifications': {
+      get: {
+        tags: ['Notifications'],
+        summary: "The signed-in user's notifications, newest first",
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 50 } },
+          { name: 'unreadOnly', in: 'query', schema: { type: 'boolean', default: false } },
+        ],
+        responses: {
+          '200': { description: 'A page of notifications' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/notifications/unread-count': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'Count of unread notifications, for the bell badge',
+        security: [{ cookieAuth: [] }],
+        responses: {
+          '200': { description: '{ count }' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/notifications/{id}/read': {
+      patch: {
+        tags: ['Notifications'],
+        summary: 'Mark one notification read',
+        security: [{ cookieAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': {
+            description: 'Marked read',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/Notification' } },
+                },
+              },
+            },
+          },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '404': { description: 'Not this user’s notification' },
+        },
+      },
+    },
+    '/notifications/read-all': {
+      patch: {
+        tags: ['Notifications'],
+        summary: 'Mark every notification read',
+        security: [{ cookieAuth: [] }],
+        responses: {
+          '200': { description: 'Marked read' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/admin/jobs': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Recent runs of every scheduled job',
+        description: 'Admin only.',
+        security: [{ cookieAuth: [] }],
+        responses: {
+          '200': { description: 'Up to five recent runs per job, newest first' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+    '/admin/jobs/{name}/run': {
+      post: {
+        tags: ['Admin'],
+        summary: 'Trigger one job immediately',
+        description: 'Admin only. Audit logged.',
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          {
+            name: 'name',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', enum: [...JOB_NAMES] },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'The resulting job run',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { data: { $ref: '#/components/schemas/JobRun' } },
+                },
+              },
+            },
+          },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
         },
       },
     },

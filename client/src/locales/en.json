@@ -561,15 +561,18 @@
     "stepComplete": "Step complete",
     "currentStep": "Current step"
   },
-  "comingSoon": {
-    "title": "Coming in next phases",
-    "phase": "Phase {{phase}}",
-    "back": "Back to dashboard",
-    "prices": "Today's mandi rates, 30-day trends and the fair-price checker will appear here.",
-    "listings": "The crops you have listed, and the offers buyers have made on them, will appear here.",
-    "orders": "Your orders, escrow payments, pickups and receipts will appear here.",
-    "browse": "Crop listings from farmers across Tamil Nadu will appear here.",
-    "offers": "The offers you have made to farmers will appear here.",
-    "notifications": "Your alerts about prices, offers and orders will appear here."
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Alerts about your prices, offers and orders.",
+    "empty": "You don't have any notifications yet.",
+    "emptyUnread": "You're all caught up.",
+    "markAllRead": "Mark all as read",
+    "markRead": "Mark as read",
+    "viewAll": "View all notifications",
+    "bellUnread": "Notifications, {{count}} unread",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread"
+    }
   }
 }

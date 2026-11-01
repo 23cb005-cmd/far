@@ -22,9 +22,9 @@ const ListingsPage = React.lazy(() => import('@/pages/ListingsPage'));
 const BrowsePage = React.lazy(() => import('@/pages/BrowsePage'));
 const OffersPage = React.lazy(() => import('@/pages/OffersPage'));
 const OrdersPage = React.lazy(() => import('@/pages/OrdersPage'));
+const NotificationsPage = React.lazy(() => import('@/pages/NotificationsPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 const DashboardPlaceholders = React.lazy(() => import('@/pages/DashboardPlaceholders'));
-const ComingSoonPage = React.lazy(() => import('@/pages/ComingSoonPage'));
 
 function RouteSpinner() {
   const { t } = useTranslation();
@@ -139,16 +139,7 @@ export default function App() {
                   </RequireAuth>
                 }
               />
-              <Route
-                path="notifications"
-                element={
-                  <ComingSoonPage
-                    titleKey="nav.notifications"
-                    bodyKey="comingSoon.notifications"
-                    phase={5}
-                  />
-                }
-              />
+              <Route path="notifications" element={<NotificationsPage />} />
 
               {/* An unknown path under /app keeps the app shell and sidebar. */}
               <Route path="*" element={<NotFoundPage />} />

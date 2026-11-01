@@ -6,3 +6,5 @@ export * from './Listing';
 export * from './Offer';
 export * from './Order';
 export * from './Rating';
+export * from './Notification';
+export * from './JobRun';

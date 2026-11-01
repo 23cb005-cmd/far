@@ -298,3 +298,30 @@ export const RATING_MAX = 5;
 export const RATING_COMMENT_MAX_LENGTH = 300;
 
 export const CANCEL_REASON_MAX_LENGTH = 300;
+
+// ---------------------------------------------------------------------------
+// Notifications and scheduled jobs (Phase 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Every event the platform tells a user about. One notification type maps to
+ * one template in `notifications/templates.ts` on the server.
+ */
+export const NOTIFICATION_TYPES = [
+  'offer_created',
+  'offer_declined',
+  'offer_accepted',
+  'order_paid',
+  'order_completed',
+  'order_cancelled',
+  'rating_received',
+  'listing_expired',
+  'price_alert',
+] as const;
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+export const JOB_NAMES = ['expireListings', 'priceAlerts', 'cleanup'] as const;
+export type JobName = (typeof JOB_NAMES)[number];
+
+export const JOB_RUN_STATUSES = ['running', 'success', 'failed'] as const;
+export type JobRunStatus = (typeof JOB_RUN_STATUSES)[number];

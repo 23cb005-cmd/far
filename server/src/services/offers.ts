@@ -12,6 +12,7 @@ import type { UserDocument } from '../models/User';
 import { AppError } from '../utils/AppError';
 import { paginated } from '../utils/respond';
 import { getTodayModalPrice, round2 } from './mandiPrices';
+import { notify } from './notifications';
 
 /** See the comment on `toListingDto` in `listings.ts` for why these take `Omit`. */
 function toOfferDto(
@@ -79,6 +80,18 @@ export async function createOffer(
     ...(input.message ? { message: input.message } : {}),
     ...(today ? { marketPriceAtOffer: today.modalPrice } : {}),
   });
+
+  await notify(
+    listing.farmer._id,
+    'offer_created',
+    {
+      cropKey: listing.cropKey,
+      quantityKg: offer.quantityKg,
+      offeredPricePerKg: offer.offeredPricePerKg,
+      buyerName: buyer.name,
+    },
+    { listingId: String(listing._id), offerId: String(offer._id) },
+  );
 
   return toOfferDto(offer, listing, buyer);
 }
@@ -172,6 +185,13 @@ export async function declineOffer(
   offer.status = 'declined';
   if (input.reason) offer.declineReason = input.reason;
   await offer.save();
+
+  await notify(
+    offer.buyer._id,
+    'offer_declined',
+    { cropKey: offer.listing.cropKey },
+    { listingId: String(offer.listing._id), offerId: String(offer._id) },
+  );
 
   return toOfferDto(offer, offer.listing, offer.buyer);
 }

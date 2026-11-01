@@ -1,9 +1,12 @@
 import type {
   FairPriceVerdict,
   Grade,
+  JobName,
+  JobRunStatus,
   Language,
   ListingStatus,
   MandiPriceSource,
+  NotificationType,
   OfferStatus,
   OrderStatus,
   PaymentProviderName,
@@ -279,6 +282,36 @@ export interface RatingDto {
   score: number;
   comment?: string;
   createdAt: string;
+}
+
+// ---------------------------------------------------------------------------
+// Notifications and scheduled jobs (Phase 5)
+// ---------------------------------------------------------------------------
+
+export interface NotificationDto {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  /** Ids a client can use to link to the related listing/offer/order. */
+  data?: Record<string, string | number | undefined>;
+  read: boolean;
+  readAt?: string;
+  createdAt: string;
+}
+
+export interface UnreadCountResponse {
+  count: number;
+}
+
+export interface JobRunDto {
+  id: string;
+  name: JobName;
+  status: JobRunStatus;
+  startedAt: string;
+  finishedAt?: string;
+  summary?: string;
+  error?: string;
 }
 
 // ---------------------------------------------------------------------------

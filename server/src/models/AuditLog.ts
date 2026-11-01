@@ -18,6 +18,7 @@ export const AUDIT_ACTIONS = [
   'auth.otp.send',
   'auth.otp.verify',
   'admin.create',
+  'admin.job.run',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number] | (string & {});
