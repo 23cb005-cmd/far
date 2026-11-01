@@ -18,6 +18,7 @@ import { paginated } from '../utils/respond';
 import { getOwnedOfferOrThrow } from './offers';
 import { round2 } from './mandiPrices';
 import { notify } from './notifications';
+import { generateUniqueCode } from '../utils/shortCode';
 
 /** See the comment on `toListingDto` in `listings.ts` for why these take `Omit`. */
 function toOrderDto(
@@ -58,6 +59,7 @@ function toOrderDto(
     ...(order.completedAt ? { completedAt: order.completedAt.toISOString() } : {}),
     ...(order.cancelledAt ? { cancelledAt: order.cancelledAt.toISOString() } : {}),
     ...(order.cancelReason ? { cancelReason: order.cancelReason } : {}),
+    code: order.code,
     myRatingSubmitted,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
@@ -83,6 +85,17 @@ async function getOwnedOrderOrThrow(userId: Types.ObjectId, orderId: string) {
 
 async function hasRated(orderId: Types.ObjectId, raterId: Types.ObjectId): Promise<boolean> {
   return Boolean(await Rating.exists({ order: orderId, rater: raterId }));
+}
+
+/** Resolve a short bot-reference code (Phase 6) back to the order it was issued for. */
+export async function findOrderByCode(code: string) {
+  return Order.findOne({ code: code.toUpperCase() })
+    .populate<{ listing: ListingDocument; farmer: UserDocument; buyer: UserDocument }>([
+      'listing',
+      'farmer',
+      'buyer',
+    ])
+    .exec();
 }
 
 /**
@@ -119,6 +132,7 @@ export async function acceptOffer(farmer: UserDocument, offerId: string): Promis
     commissionPercent: env.COMMISSION_PERCENT,
     commissionAmount,
     payoutAmount,
+    code: await generateUniqueCode(Order),
   });
 
   offer.status = 'accepted';

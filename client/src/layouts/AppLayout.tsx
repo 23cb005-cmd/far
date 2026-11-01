@@ -3,6 +3,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   Package,
   ShieldCheck,
   ShoppingCart,
@@ -49,6 +50,7 @@ function navFor(role: string | undefined): NavItem[] {
         { to: '/app/prices', labelKey: 'nav.prices', icon: TrendingUp, primary: true },
         { to: '/app/listings', labelKey: 'nav.myListings', icon: Tags, primary: true },
         { to: '/app/orders', labelKey: 'nav.orders', icon: Package },
+        { to: '/app/whatsapp-help', labelKey: 'nav.whatsapp', icon: MessageCircle },
         { to: '/app/profile', labelKey: 'nav.profile', icon: UserIcon, primary: true },
       ];
     case 'buyer':

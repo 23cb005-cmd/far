@@ -15,3 +15,7 @@ process.env.COOKIE_DOMAIN = '';
 process.env.LOG_LEVEL = 'silent';
 process.env.OTP_PROVIDER = 'console';
 process.env.TRUST_PROXY = 'false';
+process.env.TWILIO_ACCOUNT_SID = 'ACtest0000000000000000000000000000';
+process.env.TWILIO_AUTH_TOKEN = 'test-twilio-auth-token';
+process.env.TWILIO_WHATSAPP_FROM = '+14155238886';
+process.env.PUBLIC_BASE_URL = 'http://localhost:4001';

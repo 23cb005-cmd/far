@@ -55,3 +55,19 @@ export const otpLimiter = base(env.RATE_LIMIT_OTP_MAX, {
     return `otp:ip:${req.ip ?? 'unknown'}`;
   },
 });
+
+/**
+ * WhatsApp bot webhook: 20 messages / 10 min per sender, so one confused or
+ * malicious sender cannot burn the general API budget for everyone behind
+ * the same IP (Twilio itself, or a shared office connection).
+ */
+export const botLimiter = base(20, {
+  windowMs: 10 * 60 * 1000,
+  keyGenerator: (req: Request): string => {
+    const from =
+      typeof req.body === 'object' && req.body !== null
+        ? (req.body as { From?: unknown }).From
+        : undefined;
+    return typeof from === 'string' && from ? `bot:${from}` : `bot:ip:${req.ip ?? 'unknown'}`;
+  },
+});

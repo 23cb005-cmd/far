@@ -65,6 +65,9 @@ export const openApiDocument = {
     { name: 'Listings', description: 'Crop listings' },
     { name: 'Offers', description: 'Offers made on listings' },
     { name: 'Orders', description: 'Escrow orders formed by accepting an offer' },
+    { name: 'Notifications', description: "A user's in-app and WhatsApp alerts" },
+    { name: 'Admin', description: 'Scheduled jobs and bot message monitoring' },
+    { name: 'Bot', description: 'WhatsApp bot webhook and development simulator' },
   ],
   components: {
     securitySchemes: {
@@ -341,6 +344,11 @@ export const openApiDocument = {
           diffPercent: { type: 'number' },
           status: { type: 'string', enum: [...OFFER_STATUSES] },
           declineReason: { type: 'string' },
+          code: {
+            type: 'string',
+            example: 'TK4P9Q',
+            description: 'For ACCEPT/REJECT over WhatsApp',
+          },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' },
         },
@@ -394,6 +402,7 @@ export const openApiDocument = {
           completedAt: { type: 'string', format: 'date-time' },
           cancelledAt: { type: 'string', format: 'date-time' },
           cancelReason: { type: 'string' },
+          code: { type: 'string', example: 'TK4P9Q', description: 'For CONFIRM over WhatsApp' },
           myRatingSubmitted: { type: 'boolean' },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' },
@@ -448,6 +457,16 @@ export const openApiDocument = {
           finishedAt: { type: 'string', format: 'date-time' },
           summary: { type: 'string' },
           error: { type: 'string' },
+        },
+      },
+      InboundMessage: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          phone: { type: 'string', example: '+91 98••••••43' },
+          body: { type: 'string' },
+          outcome: { type: 'string', example: 'ok' },
+          createdAt: { type: 'string', format: 'date-time' },
         },
       },
     },
@@ -1232,6 +1251,85 @@ export const openApiDocument = {
           },
           '401': { $ref: '#/components/responses/Unauthorized' },
           '403': { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+    '/admin/bot-messages': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Recent inbound WhatsApp messages and their outcomes',
+        description: 'Admin only, for debugging the bot.',
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 50 } },
+        ],
+        responses: {
+          '200': { description: 'A page of inbound messages' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+    '/webhooks/twilio/whatsapp': {
+      post: {
+        tags: ['Bot'],
+        summary: 'Twilio inbound WhatsApp webhook',
+        description: [
+          'Called by Twilio, not by the client. Verified by `X-Twilio-Signature` instead of a',
+          'session or CSRF token; rate limited to 20 messages / 10 minutes per sender. Always',
+          'responds with TwiML, even on an unknown number or an error, so Twilio never retries',
+          'a message that was in fact handled.',
+        ].join(' '),
+        requestBody: {
+          required: true,
+          content: {
+            'application/x-www-form-urlencoded': {
+              schema: {
+                type: 'object',
+                required: ['From', 'Body', 'MessageSid'],
+                properties: {
+                  From: { type: 'string', example: 'whatsapp:+919876543210' },
+                  Body: { type: 'string', example: 'PRICE tomato' },
+                  MessageSid: { type: 'string', example: 'SMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'TwiML reply',
+            content: { 'text/xml': { schema: { type: 'string' } } },
+          },
+          '403': { description: 'Invalid Twilio signature' },
+          '429': { description: 'Too many messages from this sender' },
+        },
+      },
+    },
+    '/dev/bot': {
+      post: {
+        tags: ['Bot'],
+        summary: 'Simulate an inbound WhatsApp message',
+        description: 'Development only (also available in tests). Bypasses Twilio entirely.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['from', 'body'],
+                properties: {
+                  from: { type: 'string', example: '9876543210' },
+                  body: { type: 'string', example: 'PRICE tomato' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: '{ reply }' },
+          '400': { $ref: '#/components/responses/BadRequest' },
         },
       },
     },

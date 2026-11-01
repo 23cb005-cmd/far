@@ -1,6 +1,13 @@
-import { jobNameParamSchema, type JobRunDto } from '@farmfair/shared';
+import {
+  jobNameParamSchema,
+  paginationSchema,
+  type InboundMessageDto,
+  type JobRunDto,
+  type Paginated,
+} from '@farmfair/shared';
 import { currentUser } from '../middleware/auth';
 import { runJobByName } from '../jobs';
+import { getRecentBotMessages } from '../services/adminBot';
 import { getLatestJobRun, getRecentJobRuns } from '../services/adminJobs';
 import { recordAudit } from '../services/audit';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -29,4 +36,11 @@ export const runJobHandler = asyncHandler(async (req, res) => {
 
   const latest = await getLatestJobRun(name);
   sendSuccess(res, latest);
+});
+
+/** GET /admin/bot-messages */
+export const getBotMessagesHandler = asyncHandler(async (req, res) => {
+  const { page, limit } = paginationSchema.parse(req.query);
+  const body: Paginated<InboundMessageDto> = await getRecentBotMessages(page, limit);
+  sendSuccess(res, body);
 });

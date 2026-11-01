@@ -20,6 +20,8 @@ export interface OfferDocument extends Document<Types.ObjectId> {
   marketPriceAtOffer?: number;
   status: OfferStatus;
   declineReason?: string;
+  /** Short reference a farmer can type back over WhatsApp (Phase 6), e.g. "ACCEPT TK4P9Q". */
+  code: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +48,7 @@ const offerSchema = new Schema<OfferDocument, OfferModel>(
     marketPriceAtOffer: { type: Number, min: 0 },
     status: { type: String, enum: OFFER_STATUSES, default: 'pending' },
     declineReason: { type: String, trim: true, maxlength: OFFER_MESSAGE_MAX_LENGTH },
+    code: { type: String, required: true, unique: true, uppercase: true },
   },
   { timestamps: true },
 );

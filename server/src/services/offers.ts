@@ -7,12 +7,13 @@ import {
 } from '@farmfair/shared';
 import { getListingOrThrow } from './listings';
 import { Offer, type OfferDocument } from '../models/Offer';
-import type { ListingDocument } from '../models/Listing';
+import { Listing, type ListingDocument } from '../models/Listing';
 import type { UserDocument } from '../models/User';
 import { AppError } from '../utils/AppError';
 import { paginated } from '../utils/respond';
 import { getTodayModalPrice, round2 } from './mandiPrices';
 import { notify } from './notifications';
+import { generateUniqueCode } from '../utils/shortCode';
 
 /** See the comment on `toListingDto` in `listings.ts` for why these take `Omit`. */
 function toOfferDto(
@@ -49,6 +50,7 @@ function toOfferDto(
     ...(diffPercent !== undefined ? { diffPercent } : {}),
     status: offer.status,
     ...(offer.declineReason ? { declineReason: offer.declineReason } : {}),
+    code: offer.code,
     createdAt: offer.createdAt.toISOString(),
     updatedAt: offer.updatedAt.toISOString(),
   };
@@ -79,6 +81,7 @@ export async function createOffer(
     offeredPricePerKg: input.offeredPricePerKg,
     ...(input.message ? { message: input.message } : {}),
     ...(today ? { marketPriceAtOffer: today.modalPrice } : {}),
+    code: await generateUniqueCode(Offer),
   });
 
   await notify(
@@ -150,6 +153,32 @@ export async function getOwnedOfferOrThrow(offerId: string) {
     .exec();
   if (!offer) throw AppError.notFound('Offer not found');
   return offer;
+}
+
+/** Resolve a short bot-reference code (Phase 6) back to the offer it was issued for. */
+export async function findOfferByCode(code: string) {
+  return Offer.findOne({ code: code.toUpperCase() })
+    .populate<{ listing: ListingDocument; buyer: UserDocument }>(['listing', 'buyer'])
+    .exec();
+}
+
+/** A farmer's most recent pending offers, across every one of their listings - for the WhatsApp bot's OFFERS command. */
+export async function getPendingOffersForFarmer(
+  farmer: UserDocument,
+  limit: number,
+): Promise<OfferDto[]> {
+  const listings = await Listing.find({ farmer: farmer._id }).select('_id').exec();
+
+  const offers = await Offer.find({
+    listing: { $in: listings.map((l) => l._id) },
+    status: 'pending',
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate<{ listing: ListingDocument; buyer: UserDocument }>(['listing', 'buyer'])
+    .exec();
+
+  return offers.map((offer) => toOfferDto(offer, offer.listing, offer.buyer));
 }
 
 export async function withdrawOffer(buyer: UserDocument, offerId: string): Promise<OfferDto> {

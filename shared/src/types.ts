@@ -237,6 +237,8 @@ export interface OfferDto {
   diffPercent?: number;
   status: OfferStatus;
   declineReason?: string;
+  /** Short reference for the WhatsApp bot, e.g. "ACCEPT TK4P9Q". */
+  code: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -268,6 +270,8 @@ export interface OrderDto {
   completedAt?: string;
   cancelledAt?: string;
   cancelReason?: string;
+  /** Short reference for the WhatsApp bot, e.g. "CONFIRM TK4P9Q". */
+  code: string;
   /** Whether the signed-in user has already rated the other party on this order. */
   myRatingSubmitted: boolean;
   createdAt: string;
@@ -302,6 +306,21 @@ export interface NotificationDto {
 
 export interface UnreadCountResponse {
   count: number;
+}
+
+/** Response from the development-only `/dev/bot` WhatsApp simulator. */
+export interface DevBotSimulateResponse {
+  reply: string;
+}
+
+/** One logged inbound WhatsApp message, for the admin bot-messages view. */
+export interface InboundMessageDto {
+  id: string;
+  /** Masked before it is ever stored - see `InboundMessage` on the server. */
+  phone: string;
+  body: string;
+  outcome: string;
+  createdAt: string;
 }
 
 export interface JobRunDto {

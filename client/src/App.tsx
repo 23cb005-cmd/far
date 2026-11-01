@@ -23,6 +23,7 @@ const BrowsePage = React.lazy(() => import('@/pages/BrowsePage'));
 const OffersPage = React.lazy(() => import('@/pages/OffersPage'));
 const OrdersPage = React.lazy(() => import('@/pages/OrdersPage'));
 const NotificationsPage = React.lazy(() => import('@/pages/NotificationsPage'));
+const WhatsAppHelpPage = React.lazy(() => import('@/pages/WhatsAppHelpPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 const DashboardPlaceholders = React.lazy(() => import('@/pages/DashboardPlaceholders'));
 
@@ -49,6 +50,7 @@ export default function App() {
           {/* ---- public ---- */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/whatsapp-help" element={<WhatsAppHelpPage />} />
           </Route>
 
           <Route
@@ -140,6 +142,7 @@ export default function App() {
                 }
               />
               <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="whatsapp-help" element={<WhatsAppHelpPage />} />
 
               {/* An unknown path under /app keeps the app shell and sidebar. */}
               <Route path="*" element={<NotFoundPage />} />

@@ -45,6 +45,7 @@ describe('jobs/expireListings', () => {
       quantityKg: 10,
       offeredPricePerKg: 18,
       status: 'pending',
+      code: 'TEST01',
     });
 
     const result = await expireListings();

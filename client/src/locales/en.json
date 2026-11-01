@@ -16,6 +16,7 @@
     "orders": "Orders",
     "profile": "Profile",
     "notifications": "Notifications",
+    "whatsapp": "WhatsApp bot",
     "admin": "Admin",
     "login": "Log in",
     "register": "Sign up",
@@ -573,6 +574,28 @@
     "tabs": {
       "all": "All",
       "unread": "Unread"
+    }
+  },
+  "whatsapp": {
+    "title": "WhatsApp bot",
+    "subtitle": "Check prices, list crops and manage offers and orders from WhatsApp - no app needed.",
+    "join": {
+      "title": "How to join",
+      "body": "In development, join the Twilio sandbox by sending the join code shown in the server logs to the sandbox number. In production, message the number shown on this page to get started."
+    },
+    "commands": {
+      "title": "Commands",
+      "meaning": "What it does",
+      "help": "Show this command list",
+      "price": "Today's price for a crop",
+      "sell": "List a crop for sale",
+      "listings": "Your open listings",
+      "offers": "Pending offers on your listings",
+      "acceptReject": "Accept or reject an offer by its code",
+      "orders": "Your orders",
+      "confirm": "Confirm pickup for an order by its code",
+      "stopStart": "Stop or start WhatsApp alerts",
+      "lang": "Switch the bot's reply language"
     }
   }
 }

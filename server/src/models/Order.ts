@@ -42,6 +42,8 @@ export interface OrderDocument extends Document<Types.ObjectId> {
   completedAt?: Date;
   cancelledAt?: Date;
   cancelReason?: string;
+  /** Short reference a farmer can type back over WhatsApp (Phase 6), e.g. "CONFIRM TK4P9Q". */
+  code: string;
   createdAt: Date;
   updatedAt: Date;
 
@@ -85,6 +87,7 @@ const orderSchema = new Schema<OrderDocument, OrderModel>(
     completedAt: { type: Date },
     cancelledAt: { type: Date },
     cancelReason: { type: String, trim: true, maxlength: CANCEL_REASON_MAX_LENGTH },
+    code: { type: String, required: true, unique: true, uppercase: true },
   },
   { timestamps: true },
 );

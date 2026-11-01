@@ -12,7 +12,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env, isDevelopment, isProduction, isTest } from './config/env';
 import { logger } from './config/logger';
 import { openApiDocument } from './docs/openapi';
-import { csrfProtection } from './middleware/csrf';
+import { skipCsrf } from './middleware/csrf';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { generalLimiter } from './middleware/rateLimit';
 import { requestId, REQUEST_ID_HEADER } from './middleware/requestId';
@@ -34,6 +34,8 @@ import { apiRouter } from './routes';
  *   9. hpp             - collapse duplicated query parameters
  *  10. rate limiting   - cheap rejection before touching the database
  *  11. CSRF            - after cookies, before any handler mutates state
+ *                        (except the Twilio webhook, which is checked by
+ *                        request signature instead - see `skipCsrf`)
  *  12. routes
  *  13. 404 handler
  *  14. central error handler (must be last)
@@ -166,8 +168,9 @@ export function createApp(): Express {
     });
   }
 
-  // ---- 11. CSRF on all state-changing requests ----
-  app.use(API_PREFIX, csrfProtection);
+  // ---- 11. CSRF on all state-changing requests, except the Twilio webhook
+  //         (a non-browser caller authenticated by signature instead) ----
+  app.use(API_PREFIX, skipCsrf(['/webhooks']));
 
   // ---- 12. routes ----
   app.use(API_PREFIX, apiRouter);

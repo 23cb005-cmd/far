@@ -8,3 +8,5 @@ export * from './Order';
 export * from './Rating';
 export * from './Notification';
 export * from './JobRun';
+export * from './BotSession';
+export * from './InboundMessage';
