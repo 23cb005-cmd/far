@@ -23,6 +23,8 @@
     "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client",
     "test": "npm run test -w shared && npm run test -w server && npm run test -w client",
     "create-admin": "npm run create-admin -w server",
+    "seed": "npm run seed -w server",
+    "demo:reset": "npm run demo:reset -w server",
     "prepare": "husky || true"
   },
   "devDependencies": {

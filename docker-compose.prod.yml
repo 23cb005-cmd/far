@@ -1,0 +1,95 @@
+# Self-hosting compose file: Mongo + the two production images built from
+# server/Dockerfile and client/Dockerfile. Point every secret-ish value at
+# a real .env file next to this one (docker compose reads .env from the
+# same directory automatically) rather than hardcoding values here.
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d --build
+services:
+  mongo:
+    image: mongo:7
+    container_name: farmfair-mongo
+    restart: unless-stopped
+    command: ['--replSet', 'rs0', '--bind_ip_all']
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    healthcheck:
+      test: >
+        mongosh --quiet --eval "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}).ok }"
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    # Not published to the host by default - only the api service needs it.
+    # Uncomment to inspect from the host (e.g. with mongosh/Compass):
+    # ports:
+    #   - '27017:27017'
+
+  api:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: farmfair-api
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - '4000:4000'
+    environment:
+      NODE_ENV: production
+      PORT: '4000'
+      MONGODB_URI: mongodb://mongo:27017/farmfair?replicaSet=rs0&directConnection=true
+      CLIENT_URL: ${CLIENT_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      TRUST_PROXY: 'true'
+      OTP_PROVIDER: ${OTP_PROVIDER:-console}
+      DATA_GOV_API_KEY: ${DATA_GOV_API_KEY:-}
+      DATA_GOV_STATE: ${DATA_GOV_STATE:-Tamil Nadu}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      UPLOAD_DIR: uploads
+      LISTING_EXPIRY_DAYS: ${LISTING_EXPIRY_DAYS:-7}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-simulated}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+      COMMISSION_PERCENT: ${COMMISSION_PERCENT:-1}
+      NOTIFY_PROVIDER: ${NOTIFY_PROVIDER:-console}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_WHATSAPP_FROM: ${TWILIO_WHATSAPP_FROM:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      # Single-instance self-hosting: fine to enable. If you ever scale this
+      # service to more than one container, set this to 'false' here and run
+      # the cron jobs from exactly one place instead (see docs/DEPLOYMENT.md).
+      JOBS_ENABLED: ${JOBS_ENABLED:-true}
+      PRICE_ALERT_THRESHOLD: ${PRICE_ALERT_THRESHOLD:-10}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    volumes:
+      - uploads-data:/app/server/uploads
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    container_name: farmfair-client
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - '80:80'
+    environment:
+      # Consumed by nginx's envsubst templating (see client/nginx.conf) to
+      # reverse-proxy /api/ from the browser's single origin to this
+      # container's network alias for the api service.
+      FARMFAIR_API_UPSTREAM: http://api:4000
+
+volumes:
+  mongo-data:
+  mongo-config:
+  uploads-data:

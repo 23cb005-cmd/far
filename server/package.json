@@ -13,7 +13,9 @@
     "test:watch": "cross-env NODE_ENV=test jest --watch --runInBand",
     "test:coverage": "cross-env NODE_ENV=test jest --runInBand --coverage",
     "create-admin": "tsx src/scripts/createAdmin.ts",
-    "job": "tsx src/scripts/runJob.ts"
+    "job": "tsx src/scripts/runJob.ts",
+    "seed": "tsx src/scripts/seed.ts",
+    "demo:reset": "tsx src/scripts/seed.ts"
   },
   "dependencies": {
     "@farmfair/shared": "*",

@@ -1,0 +1,96 @@
+# Render blueprint for the FarmFair API.
+#
+# This deploys only the server (`server/`). The client is a static Vite app
+# meant for Vercel (see vercel.json) or any static host - it is not part of
+# this blueprint.
+#
+# Usage: connect this repo in the Render dashboard and it will detect this
+# file ("New > Blueprint"). Every env var marked `sync: false` is a secret
+# Render will prompt for during setup rather than reading from this file.
+services:
+  - type: web
+    name: farmfair-api
+    runtime: node
+    plan: starter
+    region: singapore
+    rootDir: .
+    # Builds the shared workspace package first (the server imports
+    # @farmfair/shared), then the server itself. Matches `npm run build` at
+    # the repo root, minus the client build this service doesn't need.
+    buildCommand: npm ci && npm run build -w shared && npm run build -w server
+    startCommand: npm run start -w server
+    healthCheckPath: /api/v1/health
+    # Scale this service with caution: JOBS_ENABLED must stay true on at
+    # most one instance. node-cron has no distributed lock, so running the
+    # cron jobs on more than one instance would run every job multiple
+    # times (duplicate notifications, double listing expiry, etc). If you
+    # scale to 2+ instances, set JOBS_ENABLED=false here and trigger jobs
+    # from a single separate cron-only instance (or Render's own Cron Jobs
+    # feature calling `npm run job -- <jobName>`) instead.
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: '10000'
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: COOKIE_DOMAIN
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+      - key: RATE_LIMIT_WINDOW_MINUTES
+        value: '15'
+      - key: RATE_LIMIT_AUTH_MAX
+        value: '10'
+      - key: RATE_LIMIT_GENERAL_MAX
+        value: '300'
+      - key: RATE_LIMIT_OTP_MAX
+        value: '3'
+      - key: TRUST_PROXY
+        value: 'true'
+      - key: OTP_PROVIDER
+        value: console
+      - key: DATA_GOV_API_KEY
+        sync: false
+      - key: DATA_GOV_STATE
+        value: Tamil Nadu
+      - key: STORAGE_PROVIDER
+        value: local
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: LISTING_EXPIRY_DAYS
+        value: '7'
+      - key: PAYMENT_PROVIDER
+        value: simulated
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: COMMISSION_PERCENT
+        value: '1'
+      - key: NOTIFY_PROVIDER
+        value: console
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_WHATSAPP_FROM
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: JOBS_ENABLED
+        value: 'false'
+      - key: PRICE_ALERT_THRESHOLD
+        value: '10'
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
