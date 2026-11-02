@@ -19,6 +19,9 @@ export const AUDIT_ACTIONS = [
   'auth.otp.verify',
   'admin.create',
   'admin.job.run',
+  'admin.user.verify',
+  'admin.user.suspend',
+  'admin.user.unsuspend',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number] | (string & {});

@@ -26,6 +26,11 @@
     "closeMenu": "Close menu",
     "toggleSidebar": "Toggle sidebar"
   },
+  "roles": {
+    "farmer": "Farmer",
+    "buyer": "Buyer",
+    "admin": "Admin"
+  },
   "common": {
     "loading": "Loading…",
     "save": "Save",
@@ -33,6 +38,7 @@
     "cancel": "Cancel",
     "back": "Back",
     "next": "Next",
+    "previous": "Previous",
     "submit": "Submit",
     "confirm": "Confirm",
     "close": "Close",
@@ -596,6 +602,52 @@
       "confirm": "Confirm pickup for an order by its code",
       "stopStart": "Stop or start WhatsApp alerts",
       "lang": "Switch the bot's reply language"
+    }
+  },
+  "admin": {
+    "title": "Admin console",
+    "subtitle": "Verify buyers, manage accounts and monitor scheduled jobs and the WhatsApp bot.",
+    "tabs": {
+      "users": "Users",
+      "jobs": "Jobs",
+      "bot": "Bot messages"
+    },
+    "users": {
+      "searchPlaceholder": "Search by name or phone",
+      "filterAll": "All statuses",
+      "status": {
+        "not_required": "Not required",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "suspended": "Suspended",
+      "empty": "No users match these filters.",
+      "pageOf": "Page {{page}} of {{totalPages}}",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approvedToast": "Buyer approved.",
+      "rejectedToast": "Buyer rejected.",
+      "suspend": "Suspend",
+      "suspendTitle": "Suspend {{name}}?",
+      "suspendReasonPlaceholder": "Reason for suspension (shown to the user)",
+      "suspendConfirm": "Suspend account",
+      "suspendedToast": "Account suspended.",
+      "unsuspend": "Unsuspend",
+      "unsuspendedToast": "Account reinstated."
+    },
+    "jobs": {
+      "run": "Run {{name}}",
+      "ranToast": "{{name}} finished.",
+      "empty": "No job runs yet.",
+      "status": {
+        "running": "Running",
+        "success": "Success",
+        "failed": "Failed"
+      }
+    },
+    "bot": {
+      "empty": "No WhatsApp messages yet."
     }
   }
 }

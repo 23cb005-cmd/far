@@ -26,6 +26,7 @@ const NotificationsPage = React.lazy(() => import('@/pages/NotificationsPage'));
 const WhatsAppHelpPage = React.lazy(() => import('@/pages/WhatsAppHelpPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 const DashboardPlaceholders = React.lazy(() => import('@/pages/DashboardPlaceholders'));
+const AdminPage = React.lazy(() => import('@/pages/AdminPage'));
 
 function RouteSpinner() {
   const { t } = useTranslation();
@@ -96,7 +97,7 @@ export default function App() {
                 path="admin"
                 element={
                   <RequireAuth roles={['admin']}>
-                    <DashboardPlaceholders forRole="admin" />
+                    <AdminPage />
                   </RequireAuth>
                 }
               />

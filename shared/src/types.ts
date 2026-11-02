@@ -88,6 +88,7 @@ export interface UserDto {
   verificationStatus: VerificationStatus;
   verificationNote?: string;
   isSuspended: boolean;
+  suspensionReason?: string;
   notifyWhatsApp: boolean;
   phoneVerified: boolean;
   ratingAvg: number;
