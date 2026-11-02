@@ -39,9 +39,9 @@ export default tseslint.config(
       'prefer-const': 'error',
     },
   },
-  // ---- shared + server (node) ----
+  // ---- shared + server + e2e (node) ----
   {
-    files: ['shared/**/*.ts', 'server/**/*.ts'],
+    files: ['shared/**/*.ts', 'server/**/*.ts', 'e2e/**/*.ts'],
     languageOptions: {
       globals: { ...globals.node },
     },

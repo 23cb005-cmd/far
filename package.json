@@ -7,7 +7,8 @@
   "workspaces": [
     "shared",
     "server",
-    "client"
+    "client",
+    "e2e"
   ],
   "engines": {
     "node": ">=20"
@@ -20,8 +21,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css}\"",
-    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client",
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client && npm run typecheck -w e2e",
     "test": "npm run test -w shared && npm run test -w server && npm run test -w client",
+    "test:e2e": "npm run test -w e2e",
     "create-admin": "npm run create-admin -w server",
     "seed": "npm run seed -w server",
     "demo:reset": "npm run demo:reset -w server",

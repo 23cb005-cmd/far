@@ -42,3 +42,80 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # GitHub's `services:` block can't pass CMD args (e.g. --replSet) to a
+      # container, so Mongo is started directly - same replica-set bootstrap
+      # docker-compose.yml uses for local dev, just scripted instead of a
+      # healthcheck eval.
+      - name: Start MongoDB (single-node replica set)
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.adminCommand('ping')" && break
+            sleep 1
+          done
+          docker exec mongo mongosh --quiet --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
+
+      # Throwaway secrets and a relaxed rate limit: the seed script plus two
+      # full multi-step UI flows make far more requests per IP than the
+      # production defaults (10 auth / 15 min) allow for a real user.
+      - name: Write server .env
+        run: |
+          cat > server/.env <<'EOF'
+          NODE_ENV=development
+          PORT=4000
+          MONGODB_URI=mongodb://127.0.0.1:27017/farmfair_e2e?directConnection=true
+          CLIENT_URL=http://localhost:5173
+          JWT_ACCESS_SECRET=ci-e2e-access-secret-at-least-32-characters-long-000
+          JWT_REFRESH_SECRET=ci-e2e-refresh-secret-at-least-32-characters-long-00
+          COOKIE_DOMAIN=
+          LOG_LEVEL=info
+          RATE_LIMIT_WINDOW_MINUTES=15
+          RATE_LIMIT_AUTH_MAX=1000
+          RATE_LIMIT_GENERAL_MAX=100000
+          RATE_LIMIT_OTP_MAX=1000
+          TRUST_PROXY=false
+          OTP_PROVIDER=console
+          STORAGE_PROVIDER=local
+          UPLOAD_DIR=uploads
+          LISTING_EXPIRY_DAYS=7
+          PAYMENT_PROVIDER=simulated
+          COMMISSION_PERCENT=1
+          NOTIFY_PROVIDER=console
+          JOBS_ENABLED=false
+          PRICE_ALERT_THRESHOLD=10
+          EOF
+
+      - name: Build shared package
+        run: npm run build:shared
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7

@@ -11,9 +11,10 @@ COPY package.json package-lock.json ./
 COPY shared/package.json shared/package.json
 COPY server/package.json server/package.json
 # npm workspaces resolves every path in the root "workspaces" array (shared,
-# server, client) even when only installing a subset, so the client
-# manifest must exist here too even though this image never builds it.
+# server, client, e2e) even when only installing a subset, so every
+# manifest must exist here too even though this image never builds them.
 COPY client/package.json client/package.json
+COPY e2e/package.json e2e/package.json
 RUN npm ci
 
 FROM node:20-alpine AS build

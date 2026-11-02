@@ -189,7 +189,10 @@ export async function apiPost<T>(
   body?: unknown,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  const res = await api.post<ApiResponse<T>>(url, body ?? null, config);
+  // `null` serializes to a body axios's default transformRequest leaves
+  // empty while still sending `Content-Type: application/json`, which
+  // express.json() then rejects as invalid JSON - `{}` always round-trips.
+  const res = await api.post<ApiResponse<T>>(url, body ?? {}, config);
   return unwrap(res.data);
 }
 
@@ -198,7 +201,7 @@ export async function apiPatch<T>(
   body?: unknown,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  const res = await api.patch<ApiResponse<T>>(url, body ?? null, config);
+  const res = await api.patch<ApiResponse<T>>(url, body ?? {}, config);
   return unwrap(res.data);
 }
 

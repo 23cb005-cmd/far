@@ -10,9 +10,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY shared/package.json shared/package.json
 COPY client/package.json client/package.json
-# npm workspaces resolves every path in the root "workspaces" array, so the
-# server manifest must exist here too even though this image never builds it.
+# npm workspaces resolves every path in the root "workspaces" array, so
+# every other manifest must exist here too even though this image never
+# builds them.
 COPY server/package.json server/package.json
+COPY e2e/package.json e2e/package.json
 RUN npm ci
 
 FROM node:20-alpine AS build
