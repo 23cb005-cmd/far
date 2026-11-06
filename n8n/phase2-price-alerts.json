@@ -1,0 +1,167 @@
+{
+  "name": "FarmFair - Phase 2 - Price alerts job",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Daily 7am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-1680, 0],
+      "notes": "Run this after Phase 1's ingestion run (6am) so today's and yesterday's prices are already cached - the priceAlerts job compares the two."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "apiBase", "type": "string", "value": "http://localhost:4000" },
+            { "id": "a2", "name": "adminPhone", "type": "string", "value": "+919000000000" },
+            { "id": "a3", "name": "adminPassword", "type": "string", "value": "CHANGE_ME" }
+          ]
+        }
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1460, 0],
+      "notes": "Use an admin account (see `npm run create-admin`). Only admins can trigger /admin/jobs/:name/run."
+    },
+    {
+      "parameters": {
+        "url": "={{$json.apiBase}}/api/v1/auth/csrf",
+        "options": {
+          "response": { "response": { "fullResponse": true, "responseFormat": "json" } }
+        }
+      },
+      "id": "getCsrf1",
+      "name": "Get CSRF (login)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1240, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nconst csrfToken = resp.body.data.csrfToken;\nconst setCookie = resp.headers['set-cookie'] || resp.headers['Set-Cookie'] || [];\nconst arr = Array.isArray(setCookie) ? setCookie : [setCookie];\nconst csrfCookie = arr.map(c => c.split(';')[0]).find(c => c.startsWith('ff_csrf='));\nif (!csrfCookie) throw new Error('No ff_csrf cookie in /auth/csrf response - check apiBase');\nreturn [{ json: { csrfToken, csrfCookie } }];"
+      },
+      "id": "parseCsrf1",
+      "name": "Parse CSRF (login)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1020, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$('Config').item.json.apiBase}}/api/v1/auth/login",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "x-csrf-token", "value": "={{$json.csrfToken}}" },
+            { "name": "Cookie", "value": "={{$json.csrfCookie}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ phone: $('Config').item.json.adminPhone, password: $('Config').item.json.adminPassword }) }}",
+        "options": {
+          "response": { "response": { "fullResponse": true, "responseFormat": "json" } }
+        }
+      },
+      "id": "login",
+      "name": "Login (admin)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-800, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nif (resp.statusCode >= 400) throw new Error('Login failed: ' + JSON.stringify(resp.body));\nif (resp.body.data.user.role !== 'admin') throw new Error('Logged in user is not an admin; cannot run jobs');\nconst setCookie = resp.headers['set-cookie'] || resp.headers['Set-Cookie'] || [];\nconst arr = Array.isArray(setCookie) ? setCookie : [setCookie];\nconst accessCookie = arr.map(c => c.split(';')[0]).find(c => c.startsWith('ff_access='));\nif (!accessCookie) throw new Error('No ff_access cookie - login did not succeed');\nconst accessToken = accessCookie.split('=').slice(1).join('=');\nreturn [{ json: { accessToken } }];"
+      },
+      "id": "parseAccess",
+      "name": "Parse Access Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-580, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$('Config').item.json.apiBase}}/api/v1/auth/csrf",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{$json.accessToken}}" }]
+        },
+        "options": {
+          "response": { "response": { "fullResponse": true, "responseFormat": "json" } }
+        }
+      },
+      "id": "getCsrf2",
+      "name": "Get CSRF (run-job)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-360, 0],
+      "notes": "Login rotates the CSRF cookie, so fetch a fresh matching token+cookie pair before the state-changing run-job call."
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nconst csrfToken = resp.body.data.csrfToken;\nconst setCookie = resp.headers['set-cookie'] || resp.headers['Set-Cookie'] || [];\nconst arr = Array.isArray(setCookie) ? setCookie : [setCookie];\nconst csrfCookie = arr.map(c => c.split(';')[0]).find(c => c.startsWith('ff_csrf='));\nreturn [{ json: { csrfToken, csrfCookie, accessToken: $('Parse Access Token').first().json.accessToken } }];"
+      },
+      "id": "parseCsrf2",
+      "name": "Parse CSRF (run-job)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-140, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$('Config').item.json.apiBase}}/api/v1/admin/jobs/priceAlerts/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-csrf-token", "value": "={{$json.csrfToken}}" },
+            { "name": "Cookie", "value": "={{$json.csrfCookie}}" },
+            { "name": "Authorization", "value": "=Bearer {{$json.accessToken}}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "runJob",
+      "name": "Run priceAlerts job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [80, 0],
+      "notes": "This calls FarmFair's own priceAlerts logic (server/src/jobs/priceAlerts.ts) - the day-over-day threshold comparison and notification dispatch are unchanged; n8n is just the scheduler now instead of JOBS_ENABLED's in-process node-cron."
+    }
+  ],
+  "connections": {
+    "Daily 7am": { "main": [[{ "node": "Config", "type": "main", "index": 0 }]] },
+    "Config": { "main": [[{ "node": "Get CSRF (login)", "type": "main", "index": 0 }]] },
+    "Get CSRF (login)": {
+      "main": [[{ "node": "Parse CSRF (login)", "type": "main", "index": 0 }]]
+    },
+    "Parse CSRF (login)": { "main": [[{ "node": "Login (admin)", "type": "main", "index": 0 }]] },
+    "Login (admin)": { "main": [[{ "node": "Parse Access Token", "type": "main", "index": 0 }]] },
+    "Parse Access Token": {
+      "main": [[{ "node": "Get CSRF (run-job)", "type": "main", "index": 0 }]]
+    },
+    "Get CSRF (run-job)": {
+      "main": [[{ "node": "Parse CSRF (run-job)", "type": "main", "index": 0 }]]
+    },
+    "Parse CSRF (run-job)": {
+      "main": [[{ "node": "Run priceAlerts job", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}

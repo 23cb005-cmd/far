@@ -1,0 +1,169 @@
+{
+  "name": "FarmFair - Phase 1 - Mandi price ingestion",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Daily 6am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-1680, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "apiBase",
+              "type": "string",
+              "value": "http://localhost:4000"
+            },
+            {
+              "id": "a2",
+              "name": "farmerPhone",
+              "type": "string",
+              "value": "+919876543210"
+            },
+            {
+              "id": "a3",
+              "name": "farmerPassword",
+              "type": "string",
+              "value": "CHANGE_ME"
+            }
+          ]
+        }
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1460, 0],
+      "notes": "Edit apiBase/farmerPhone/farmerPassword here. Use a seeded farmer account's phone+password (see `npm run seed` output), or create a dedicated service account."
+    },
+    {
+      "parameters": {
+        "url": "={{$json.apiBase}}/api/v1/auth/csrf",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "getCsrf",
+      "name": "Get CSRF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1240, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nconst csrfToken = resp.body.data.csrfToken;\nconst setCookie = resp.headers['set-cookie'] || resp.headers['Set-Cookie'] || [];\nconst arr = Array.isArray(setCookie) ? setCookie : [setCookie];\nconst csrfCookie = arr.map(c => c.split(';')[0]).find(c => c.startsWith('ff_csrf='));\nif (!csrfCookie) throw new Error('No ff_csrf cookie in /auth/csrf response - check apiBase');\nreturn [{ json: { csrfToken, csrfCookie } }];"
+      },
+      "id": "parseCsrf",
+      "name": "Parse CSRF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1020, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$('Config').item.json.apiBase}}/api/v1/auth/login",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "x-csrf-token", "value": "={{$json.csrfToken}}" },
+            { "name": "Cookie", "value": "={{$json.csrfCookie}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ phone: $('Config').item.json.farmerPhone, password: $('Config').item.json.farmerPassword }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "login",
+      "name": "Login",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-800, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nif (resp.statusCode >= 400) throw new Error('Login failed: ' + JSON.stringify(resp.body));\nconst setCookie = resp.headers['set-cookie'] || resp.headers['Set-Cookie'] || [];\nconst arr = Array.isArray(setCookie) ? setCookie : [setCookie];\nconst accessCookie = arr.map(c => c.split(';')[0]).find(c => c.startsWith('ff_access='));\nif (!accessCookie) throw new Error('No ff_access cookie - login did not succeed');\nconst accessToken = accessCookie.split('=').slice(1).join('=');\nreturn [{ json: { accessToken } }];"
+      },
+      "id": "parseAccess",
+      "name": "Parse Access Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-580, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const districts = [\n  'Ariyalur','Chengalpattu','Chennai','Coimbatore','Cuddalore','Dharmapuri','Dindigul','Erode',\n  'Kallakurichi','Kancheepuram','Kanniyakumari','Karur','Krishnagiri','Madurai','Mayiladuthurai',\n  'Nagapattinam','Namakkal','Nilgiris','Perambalur','Pudukkottai','Ramanathapuram','Ranipet',\n  'Salem','Sivaganga','Tenkasi','Thanjavur','Theni','Thoothukudi','Tiruchirappalli','Tirunelveli',\n  'Tirupathur','Tiruppur','Tiruvallur','Tiruvannamalai','Tiruvarur','Vellore','Viluppuram','Virudhunagar'\n];\nreturn districts.map(district => ({ json: { district } }));"
+      },
+      "id": "districts",
+      "name": "TN Districts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-360, 0],
+      "notes": "Trim this list if you only need specific districts - fewer items means fewer requests per run."
+    },
+    {
+      "parameters": {
+        "url": "={{$('Config').item.json.apiBase}}/api/v1/prices/today",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [{ "name": "district", "value": "={{$json.district}}" }]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$('Parse Access Token').first().json.accessToken}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetchPrices",
+      "name": "Fetch Today Prices",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-140, 0],
+      "notes": "Hitting this endpoint is what actually triggers FarmFair's lazy fetch-and-cache into MongoDB for that district/day - see docs/PRICES.md."
+    }
+  ],
+  "connections": {
+    "Daily 6am": { "main": [[{ "node": "Config", "type": "main", "index": 0 }]] },
+    "Config": { "main": [[{ "node": "Get CSRF", "type": "main", "index": 0 }]] },
+    "Get CSRF": { "main": [[{ "node": "Parse CSRF", "type": "main", "index": 0 }]] },
+    "Parse CSRF": { "main": [[{ "node": "Login", "type": "main", "index": 0 }]] },
+    "Login": { "main": [[{ "node": "Parse Access Token", "type": "main", "index": 0 }]] },
+    "Parse Access Token": { "main": [[{ "node": "TN Districts", "type": "main", "index": 0 }]] },
+    "TN Districts": { "main": [[{ "node": "Fetch Today Prices", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}

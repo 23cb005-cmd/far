@@ -1,0 +1,214 @@
+{
+  "name": "FarmFair - Phase 3 - WhatsApp price-check bot (starter)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "farmfair-whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Twilio Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-1680, 0],
+      "notes": "Point Twilio's WhatsApp sandbox/number webhook at this node's Production URL. NOTE: this starter workflow does not verify Twilio's X-Twilio-Signature - add that check (HMAC-SHA1 over the URL+sorted params using your Twilio auth token) before using this in production, otherwise anyone can POST fake messages here."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "apiBase", "type": "string", "value": "http://localhost:4000" },
+            { "id": "a2", "name": "servicePhone", "type": "string", "value": "+919876543210" },
+            { "id": "a3", "name": "servicePassword", "type": "string", "value": "CHANGE_ME" },
+            { "id": "a4", "name": "defaultDistrict", "type": "string", "value": "Chennai" }
+          ]
+        }
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1460, 0],
+      "notes": "Service account used to call the FarmFair API on behalf of incoming WhatsApp messages. Any seeded farmer/buyer account works for read-only price checks."
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst from = body.From || '';\nconst text = String(body.Body || '').trim();\nconst match = text.match(/^price\\s+(.+)$/i);\nconst cropRaw = match ? match[1].trim().toLowerCase() : null;\nreturn [{ json: { from, text, cropKey: cropRaw, isPriceCommand: Boolean(cropRaw) } }];"
+      },
+      "id": "parseMessage",
+      "name": "Parse Twilio Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1240, 0],
+      "notes": "Only command implemented here: 'price <crop>' e.g. 'price tomato'. Extend this to match FarmFair's full bot command set (see docs/USER_GUIDE.md) as needed."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{$json.isPriceCommand}}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "ifPrice",
+      "name": "Is price command?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-1020, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{$('Config').item.json.apiBase}}/api/v1/auth/csrf",
+        "options": {
+          "response": { "response": { "fullResponse": true, "responseFormat": "json" } }
+        }
+      },
+      "id": "getCsrf",
+      "name": "Get CSRF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-800, -120]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nconst csrfToken = resp.body.data.csrfToken;\nconst setCookie = resp.headers['set-cookie'] || resp.headers['Set-Cookie'] || [];\nconst arr = Array.isArray(setCookie) ? setCookie : [setCookie];\nconst csrfCookie = arr.map(c => c.split(';')[0]).find(c => c.startsWith('ff_csrf='));\nreturn [{ json: { csrfToken, csrfCookie } }];"
+      },
+      "id": "parseCsrf",
+      "name": "Parse CSRF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-580, -120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$('Config').item.json.apiBase}}/api/v1/auth/login",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "x-csrf-token", "value": "={{$json.csrfToken}}" },
+            { "name": "Cookie", "value": "={{$json.csrfCookie}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ phone: $('Config').item.json.servicePhone, password: $('Config').item.json.servicePassword }) }}",
+        "options": {
+          "response": { "response": { "fullResponse": true, "responseFormat": "json" } }
+        }
+      },
+      "id": "login",
+      "name": "Login",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-360, -120]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nif (resp.statusCode >= 400) throw new Error('Login failed: ' + JSON.stringify(resp.body));\nconst setCookie = resp.headers['set-cookie'] || resp.headers['Set-Cookie'] || [];\nconst arr = Array.isArray(setCookie) ? setCookie : [setCookie];\nconst accessCookie = arr.map(c => c.split(';')[0]).find(c => c.startsWith('ff_access='));\nconst accessToken = accessCookie.split('=').slice(1).join('=');\nreturn [{ json: { accessToken } }];"
+      },
+      "id": "parseAccess",
+      "name": "Parse Access Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-140, -120]
+    },
+    {
+      "parameters": {
+        "url": "={{$('Config').item.json.apiBase}}/api/v1/prices/today",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "district", "value": "={{$('Config').item.json.defaultDistrict}}" }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{$json.accessToken}}" }]
+        },
+        "options": {}
+      },
+      "id": "fetchPrices",
+      "name": "Fetch Today Prices",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [80, -120]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cropKey = $('Parse Twilio Message').first().json.cropKey;\nconst data = $input.first().json.data;\nconst match = data.crops.find(c => c.cropKey === cropKey);\nlet reply;\nif (!match) {\n  reply = `No price found for \"${cropKey}\" in ${data.district} today. Try a crop key like tomato, onion, brinjal.`;\n} else {\n  reply = `${cropKey} in ${data.district} today: Rs.${match.modalPrice}/kg (range Rs.${match.minPrice}-Rs.${match.maxPrice}). Source: ${match.source}.`;\n}\nreturn [{ json: { reply } }];"
+      },
+      "id": "buildPriceReply",
+      "name": "Build price reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, -120]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { reply: \"Sorry, I didn't understand that. Try: price tomato\" } }];"
+      },
+      "id": "buildDefaultReply",
+      "name": "Build default reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-800, 120]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Message>{{$json.reply}}</Message></Response>",
+        "options": {
+          "responseHeaders": {
+            "entries": [{ "name": "Content-Type", "value": "text/xml" }]
+          }
+        }
+      },
+      "id": "respond",
+      "name": "Respond with TwiML",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [560, 0]
+    }
+  ],
+  "connections": {
+    "Twilio Webhook": { "main": [[{ "node": "Config", "type": "main", "index": 0 }]] },
+    "Config": { "main": [[{ "node": "Parse Twilio Message", "type": "main", "index": 0 }]] },
+    "Parse Twilio Message": {
+      "main": [[{ "node": "Is price command?", "type": "main", "index": 0 }]]
+    },
+    "Is price command?": {
+      "main": [
+        [{ "node": "Get CSRF", "type": "main", "index": 0 }],
+        [{ "node": "Build default reply", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get CSRF": { "main": [[{ "node": "Parse CSRF", "type": "main", "index": 0 }]] },
+    "Parse CSRF": { "main": [[{ "node": "Login", "type": "main", "index": 0 }]] },
+    "Login": { "main": [[{ "node": "Parse Access Token", "type": "main", "index": 0 }]] },
+    "Parse Access Token": {
+      "main": [[{ "node": "Fetch Today Prices", "type": "main", "index": 0 }]]
+    },
+    "Fetch Today Prices": {
+      "main": [[{ "node": "Build price reply", "type": "main", "index": 0 }]]
+    },
+    "Build price reply": {
+      "main": [[{ "node": "Respond with TwiML", "type": "main", "index": 0 }]]
+    },
+    "Build default reply": {
+      "main": [[{ "node": "Respond with TwiML", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
