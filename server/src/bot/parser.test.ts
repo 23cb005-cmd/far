@@ -75,6 +75,11 @@ describe('parseBotCommand', () => {
     expect(parseBotCommand('SELL tomato -5')).toEqual({ type: 'sell_invalid' });
   });
 
+  it('rejects SELL with an invalid or extra price', () => {
+    expect(parseBotCommand('SELL tomato 500 nope')).toEqual({ type: 'sell_invalid' });
+    expect(parseBotCommand('SELL tomato 500 20 30')).toEqual({ type: 'sell_invalid' });
+  });
+
   it('rejects SELL with an unrecognised crop', () => {
     expect(parseBotCommand('SELL dragonfruit 500')).toEqual({ type: 'sell_unknown_crop' });
   });

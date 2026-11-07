@@ -39,11 +39,22 @@ export const twilioWhatsAppWebhookHandler = asyncHandler(async (req: Request, re
     return;
   }
 
-  // Idempotency: Twilio retries a webhook that was slow to answer, so the
-  // same MessageSid must never be processed (and replied to) twice.
-  if (await InboundMessage.exists({ messageSid })) {
-    sendTwiml(res, '');
-    return;
+  // Claim the MessageSid before processing. Checking first and inserting
+  // afterwards allows two concurrent Twilio retries to execute the command
+  // twice before either request has written its log record.
+  try {
+    await InboundMessage.create({
+      phone: maskPhone(phone),
+      body: text.slice(0, 1000),
+      messageSid,
+      outcome: 'processing',
+    });
+  } catch (error) {
+    if ((error as { code?: number }).code === 11000) {
+      sendTwiml(res, '');
+      return;
+    }
+    throw error;
   }
 
   let reply: string;
@@ -56,12 +67,7 @@ export const twilioWhatsAppWebhookHandler = asyncHandler(async (req: Request, re
     reply = 'Something went wrong. Please try again.';
   }
 
-  await InboundMessage.create({
-    phone: maskPhone(phone),
-    body: text.slice(0, 1000),
-    messageSid,
-    outcome,
-  });
+  await InboundMessage.updateOne({ messageSid }, { $set: { outcome } }).exec();
 
   sendTwiml(res, reply);
 });

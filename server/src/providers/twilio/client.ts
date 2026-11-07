@@ -6,6 +6,11 @@ export function twilioConfigured(): boolean {
   return Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN);
 }
 
+export function toWhatsAppAddress(value: string): string {
+  const address = value.trim();
+  return /^whatsapp:/i.test(address) ? `whatsapp:${address.slice(9)}` : `whatsapp:${address}`;
+}
+
 let client: ReturnType<typeof Twilio> | null = null;
 
 /**

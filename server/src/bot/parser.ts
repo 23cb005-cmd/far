@@ -215,7 +215,11 @@ export function parseBotCommand(raw: string): BotCommand {
       const quantityKg = parseNumber(numberTokens[0]);
       if (quantityKg === undefined || quantityKg <= 0) return { type: 'sell_invalid' };
 
+      if (numberTokens.length > 2) return { type: 'sell_invalid' };
       const pricePerKg = parseNumber(numberTokens[1]);
+      if (numberTokens[1] !== undefined && pricePerKg === undefined) {
+        return { type: 'sell_invalid' };
+      }
       return {
         type: 'sell',
         cropKey,

@@ -60,6 +60,16 @@ describe('POST /webhooks/twilio/whatsapp', () => {
 
     expect(countAfterSecond).toBe(countAfterFirst);
   });
+
+  it('claims a MessageSid before concurrent retries can process it twice', async () => {
+    const farmer = await seedUser({ phone: '+919000000075' });
+    const params = { From: `whatsapp:${farmer.phone}`, Body: 'HELP', MessageSid: 'SM-dup-race-1' };
+
+    const responses = await Promise.all([signedRequest(params), signedRequest(params)]);
+
+    expect(responses.every((response) => response.status === 200)).toBe(true);
+    expect(await InboundMessage.countDocuments({ messageSid: params.MessageSid })).toBe(1);
+  });
 });
 
 describe('GET /admin/bot-messages', () => {

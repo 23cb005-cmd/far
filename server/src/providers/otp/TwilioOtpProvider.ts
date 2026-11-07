@@ -1,6 +1,6 @@
 import { env } from '../../config/env';
 import { logger } from '../../config/logger';
-import { getTwilioClient } from '../twilio/client';
+import { getTwilioClient, toWhatsAppAddress } from '../twilio/client';
 import type { OtpMessage, OtpProvider, OtpSendResult } from './types';
 
 function otpText(message: OtpMessage): string {
@@ -21,8 +21,8 @@ export class TwilioOtpProvider implements OtpProvider {
   async send(message: OtpMessage): Promise<OtpSendResult> {
     try {
       const result = await getTwilioClient().messages.create({
-        from: `whatsapp:${env.TWILIO_WHATSAPP_FROM}`,
-        to: `whatsapp:${message.to}`,
+        from: toWhatsAppAddress(env.TWILIO_WHATSAPP_FROM!),
+        to: toWhatsAppAddress(message.to),
         body: otpText(message),
       });
       return { delivered: true, reference: result.sid };
